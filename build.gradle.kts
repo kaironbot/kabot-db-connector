@@ -22,10 +22,10 @@ dependencies {
     testImplementation("io.kotest:kotest-framework-engine-jvm:5.4.2")
 }
 
-tasks.test {
+tasks.withType<Test> {
     useJUnitPlatform()
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "17"
 }
