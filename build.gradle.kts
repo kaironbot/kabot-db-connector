@@ -18,6 +18,8 @@ dependencies {
     implementation("io.kotest:kotest-runner-junit5-jvm:5.4.2")
     implementation("org.slf4j:slf4j-api:2.0.0")
     implementation("org.slf4j:slf4j-simple:2.0.0")
+    testImplementation("io.kotest:kotest-assertions-core-jvm:5.4.2")
+    testImplementation("io.kotest:kotest-framework-engine-jvm:5.4.2")
 }
 
 tasks.test {
