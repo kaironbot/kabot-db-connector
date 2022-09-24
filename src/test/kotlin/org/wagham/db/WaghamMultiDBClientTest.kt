@@ -37,6 +37,8 @@ class WaghamMultiDBClientTest : StringSpec({
         char.status shouldBe CharacterStatus.active
     }
 
-    "getActive "
+    "this is a dummy test" {
+        true shouldBe true
+    }
 
 })
