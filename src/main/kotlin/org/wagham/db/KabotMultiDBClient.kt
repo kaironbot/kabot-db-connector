@@ -1,6 +1,5 @@
 package org.wagham.db
 
-import io.kotest.common.runBlocking
 import org.bson.Document
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.coroutine.coroutine
@@ -31,6 +30,6 @@ class KabotMultiDBClient(
     }
 
     fun getItems(guildId: String) =
-        databaseCache[guildId]?.getCollection<Item>("items")?.find("{}") ?: throw InvalidGuildException(guildId)
+        databaseCache[guildId]?.getCollection<Item>("items")?.find("{}")?.toFlow() ?: throw InvalidGuildException(guildId)
 
 }
