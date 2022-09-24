@@ -6,10 +6,11 @@ import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.reactivestreams.KMongo
 import org.wagham.db.exceptions.InvalidCredentialsExceptions
 import org.wagham.db.exceptions.InvalidGuildException
+import org.wagham.db.exceptions.NoActiveCharacterException
 import org.wagham.db.models.Item
 import org.wagham.db.models.MongoCredentials
 
-class WaghamMultiDBClient(
+class KabotMultiDBClient(
     credentials: Map<String, MongoCredentials>
 ) {
 
@@ -24,10 +25,11 @@ class WaghamMultiDBClient(
         return databaseCache[guildId]?.let {
             val col = it.getCollection<org.wagham.db.models.Character>("characters")
             col.findOne(Document(mapOf("status" to "active", "player" to playerId)))
+                ?: throw NoActiveCharacterException(playerId)
         } ?: throw InvalidGuildException(guildId)
     }
 
     fun getItems(guildId: String) =
-        databaseCache[guildId]?.getCollection<Item>("items")?.find("{}") ?: throw InvalidGuildException(guildId)
+        databaseCache[guildId]?.getCollection<Item>("items")?.find("{}")?.toFlow() ?: throw InvalidGuildException(guildId)
 
 }

@@ -18,13 +18,13 @@ data class Item (
 )
 
 data class Craft(
-    @JsonProperty("craft_mo_cost") val craftMoCost: Float,
-    val tier: String,
+    @JsonProperty("craft_mo_cost") val craftMoCost: Float?,
+    val tier: String?,
     @JsonProperty("craft_tools") val craftTools: List<String> = listOf(),
-    @JsonProperty("craft_tbadge") val craftTBadge: Int,
-    @JsonProperty("craft_time") val craftTime: Int,
-    @JsonProperty("craft_total_cost") val craftTotalCost: Float,
-    @JsonProperty("craft_min_qty") val craftMinQty: Int,
-    @JsonProperty("craft_max_qty") val craftMaxQty: Int,
+    @JsonProperty("craft_tbadge") val craftTBadge: Int?,
+    @JsonProperty("craft_time") val craftTime: Int?,
+    @JsonProperty("craft_total_cost") val craftTotalCost: Float?,
+    @JsonProperty("craft_min_qty") val craftMinQty: Int?,
+    @JsonProperty("craft_max_qty") val craftMaxQty: Int?,
     @JsonProperty("craft_ingredients") val ingredients: Map<String, Int> = mapOf()
 )
