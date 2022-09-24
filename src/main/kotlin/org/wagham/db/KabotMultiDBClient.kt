@@ -9,7 +9,7 @@ import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.models.Item
 import org.wagham.db.models.MongoCredentials
 
-class WaghamMultiDBClient(
+class KabotMultiDBClient(
     credentials: Map<String, MongoCredentials>
 ) {
 

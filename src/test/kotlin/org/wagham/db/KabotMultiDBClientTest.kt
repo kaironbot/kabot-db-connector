@@ -1,16 +1,15 @@
 package org.wagham.db
 
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.models.MongoCredentials
 
 
-class WaghamMultiDBClientTest : StringSpec({
+class KabotMultiDBClientTest : StringSpec({
 
-    val client = WaghamMultiDBClient(
+    val client = KabotMultiDBClient(
         mapOf(
             System.getenv("TEST_DB_ID")!! to MongoCredentials(
                 System.getenv("DB_TEST_USER")!!,
