@@ -13,15 +13,13 @@ import org.wagham.db.models.MongoCredentials
 class KabotMultiDBClientTest : StringSpec({
 
     val client = KabotMultiDBClient(
-        mapOf(
-            System.getenv("TEST_DB_ID")!! to MongoCredentials(
+             MongoCredentials("ADMIN",
                 System.getenv("DB_TEST_USER")!!,
                 System.getenv("DB_TEST_PWD")!!,
                 System.getenv("TEST_DB")!!,
                 System.getenv("DB_TEST_IP")!!,
                 System.getenv("DB_TEST_PORT")!!.toInt(),
             )
-        )
     )
     val guildId = System.getenv("TEST_DB_ID")!!
 

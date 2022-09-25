@@ -1,5 +1,7 @@
 package org.wagham.db
 
+import io.kotest.common.runBlocking
+import kotlinx.coroutines.flow.fold
 import org.bson.Document
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.coroutine.coroutine
@@ -11,15 +13,25 @@ import org.wagham.db.models.Item
 import org.wagham.db.models.MongoCredentials
 
 class KabotMultiDBClient(
-    credentials: Map<String, MongoCredentials>
+    credentials: MongoCredentials
 ) {
 
-    private val databaseCache = credentials.keys.fold(mapOf<String, CoroutineDatabase>()) { acc, guildId ->
-        credentials[guildId]?.let {
-            acc + (guildId to
-                    KMongo.createClient("mongodb://${it.username}:${it.password}@${it.ip}:${it.port}/${it.database}").coroutine.getDatabase(it.database))
-        } ?: throw InvalidCredentialsExceptions(guildId)
+    private val adminDatabase = KMongo.createClient(
+        credentials.toConnectionString()
+    ).coroutine.getDatabase(credentials.database)
+    private lateinit var databaseCache: Map<String, CoroutineDatabase>
+    init {
+        runBlocking {
+            databaseCache = adminDatabase.getCollection<MongoCredentials>("credentials")
+                .find("{}").toFlow()
+                .fold(mapOf()) { acc, guildCredentials ->
+                    acc + (guildCredentials.guildId to
+                            KMongo.createClient(guildCredentials.toConnectionString()).coroutine.getDatabase(guildCredentials.database))
+
+                }
+        }
     }
+
 
     suspend fun getActiveCharacter(guildId: String, playerId: String): org.wagham.db.models.Character {
         return databaseCache[guildId]?.let {
