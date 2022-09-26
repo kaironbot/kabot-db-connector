@@ -19,7 +19,9 @@ jobs:
           distribution: 'adopt'
 
       - name: Grant Permissions to gradlew
-        run: chmod +x gradlew
+        run: |
+          gradle wrapper
+          chmod +x gradlew
 
       - name: Test
         env:
