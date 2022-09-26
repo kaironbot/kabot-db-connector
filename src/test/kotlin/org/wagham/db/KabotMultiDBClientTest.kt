@@ -4,7 +4,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.count
 import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.exceptions.NoActiveCharacterException
