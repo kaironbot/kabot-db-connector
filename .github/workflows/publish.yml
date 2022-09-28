@@ -7,7 +7,7 @@ on:
 
 jobs:
   kotest:
-    name: Test
+    name: Publish
     runs-on: ubuntu-latest
     steps:
       - name: checkout
