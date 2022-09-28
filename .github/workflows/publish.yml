@@ -24,6 +24,16 @@ jobs:
           gradle wrapper
           chmod +x gradlew
 
+      - name: Test
+        env:
+          DB_TEST_IP: ${{ secrets.DB_TEST_IP }}
+          DB_TEST_PORT: ${{ secrets.DB_TEST_PORT }}
+          DB_TEST_PWD: ${{ secrets.DB_TEST_PWD }}
+          DB_TEST_USER: ${{ secrets.DB_TEST_USER }}
+          TEST_DB: ${{ secrets.TEST_DB }}
+          TEST_DB_ID: ${{ secrets.TEST_DB_ID }}
+        run: ./gradlew kotest
+
       - name: Build
         env:
           DB_TEST_IP: ${{ secrets.DB_TEST_IP }}
@@ -32,7 +42,7 @@ jobs:
           DB_TEST_USER: ${{ secrets.DB_TEST_USER }}
           TEST_DB: ${{ secrets.TEST_DB }}
           TEST_DB_ID: ${{ secrets.TEST_DB_ID }}
-        run: ./gradlew build
+        run: ./gradlew build -x test
 
       - name: Publish
         env:
