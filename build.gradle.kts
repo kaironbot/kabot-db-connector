@@ -3,11 +3,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "1.7.10"
     id("io.kotest") version "0.3.8"
-    "maven-publish"
+    id("maven-publish")
 }
 
 group = "org.wagham"
 version = "0.0.2"
+
+apply(plugin = "maven-publish")
 
 repositories {
     mavenCentral()
@@ -29,4 +31,24 @@ tasks.withType<Test> {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "17"
+}
+
+publishing {
+    repositories {
+        maven {
+            url = uri("https://repo.repsy.io/mvn/testadirapa/kabot")
+            credentials {
+                username = System.getenv("REPSY_USERNAME")
+                password = System.getenv("REPSY_PASSWORD")
+            }
+        }
+    }
+    publications {
+        register("mavenJava", MavenPublication::class) {
+            groupId = "org.wagham"
+            artifactId = "kabot-db-connector"
+            version = "0.0.2"
+            from(components["java"])
+        }
+    }
 }
