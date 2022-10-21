@@ -32,16 +32,6 @@ class KabotMultiDBClient(
         }
     }
 
-
-    suspend fun getActiveCharacter(guildId: String, playerId: String): org.wagham.db.models.Character {
-        return databaseCache[guildId]?.let {
-            val col = it.getCollection<org.wagham.db.models.Character>("characters")
-            col.findOne(Document(mapOf("status" to "active", "player" to playerId)))
-                ?: throw NoActiveCharacterException(playerId)
-        } ?: throw InvalidGuildException(guildId)
-    }
-
-    fun getItems(guildId: String) =
-        databaseCache[guildId]?.getCollection<Item>("items")?.find("{}")?.toFlow() ?: throw InvalidGuildException(guildId)
+    fun getGuildDb(guildId: String): CoroutineDatabase? = databaseCache[guildId]
 
 }

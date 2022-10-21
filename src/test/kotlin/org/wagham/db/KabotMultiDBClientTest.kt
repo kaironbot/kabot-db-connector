@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.count
 import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.exceptions.NoActiveCharacterException
 import org.wagham.db.models.MongoCredentials
+import org.wagham.db.scopes.getActiveCharacter
+import org.wagham.db.scopes.getItems
 
 class KabotMultiDBClientTest : StringSpec({
 
