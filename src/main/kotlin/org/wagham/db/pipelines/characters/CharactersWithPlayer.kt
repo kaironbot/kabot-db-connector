@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.bson.Document
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.conversions.Bson
-import org.litote.kmongo.document
 import org.litote.kmongo.lookup
 import org.litote.kmongo.match
 import org.wagham.db.enums.CharacterStatus

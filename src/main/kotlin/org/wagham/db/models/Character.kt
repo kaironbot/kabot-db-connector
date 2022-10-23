@@ -13,7 +13,7 @@ data class Character (
     @JsonProperty("class") val characterClass: String?,
     val status: CharacterStatus,
     val masterMS: Int,
-    val PBCMS: Int,
+    @JsonProperty("PBCMS") val pbcMS: Int,
     val errataMS: Int,
     val errata: List<Errata>,
     val created: Date?,
