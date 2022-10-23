@@ -3,12 +3,25 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "1.7.10"
     id("io.kotest") version "0.3.8"
+    id("org.sonarqube") version "3.3"
     id("maven-publish")
+    id("jacoco")
 }
+
+buildscript {
+    repositories {
+        mavenCentral() // or gradlePluginPortal()
+    }
+    dependencies {
+        classpath("com.dipien:semantic-version-gradle-plugin:1.3.0")
+    }
+}
+
 
 group = "org.wagham"
 version = "0.0.2"
 
+apply(plugin = "com.dipien.semantic-version")
 apply(plugin = "maven-publish")
 
 repositories {
@@ -47,7 +60,7 @@ publishing {
         register("mavenJava", MavenPublication::class) {
             groupId = "org.wagham"
             artifactId = "kabot-db-connector"
-            version = "0.0.2"
+            version = version
             from(components["java"])
         }
     }

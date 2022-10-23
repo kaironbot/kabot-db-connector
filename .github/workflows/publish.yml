@@ -6,8 +6,9 @@ on:
       - main
 
 jobs:
-  kotest:
+  build_and_publish:
     name: Publish
+    if: github.event.pull_request.merged == true && (contains(github.event.pull_request.labels.*.name, 'major') || contains(github.event.pull_request.labels.*.name, 'minor') || contains(github.event.pull_request.labels.*.name, 'patch'))
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -19,11 +20,6 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
 
-      - name: Grant Permissions to gradlew
-        run: |
-          gradle wrapper
-          chmod +x gradlew
-
       - name: Test
         env:
           DB_TEST_IP: ${{ secrets.DB_TEST_IP }}
@@ -32,7 +28,7 @@ jobs:
           DB_TEST_USER: ${{ secrets.DB_TEST_USER }}
           TEST_DB: ${{ secrets.TEST_DB }}
           TEST_DB_ID: ${{ secrets.TEST_DB_ID }}
-        run: ./gradlew kotest
+        run: gradle kotest
 
       - name: Build
         env:
@@ -42,10 +38,20 @@ jobs:
           DB_TEST_USER: ${{ secrets.DB_TEST_USER }}
           TEST_DB: ${{ secrets.TEST_DB }}
           TEST_DB_ID: ${{ secrets.TEST_DB_ID }}
-        run: ./gradlew build -x test
+        run: gradle build -x test
+
+      - name: Creation new version (Major) 🏷️
+        if: ${{ contains(github.event.pull_request.labels.*.name, 'major') }}
+        run: gradle incrementVersion --versionIncrementType=MAJOR --versionIncrementBranch=main -PgitUserName=TestaDiRapa -PgitUserEmail=v.c.pierro@gmail.com
+      - name: Creation new version (Minor) 🏷️
+        if: ${{ contains(github.event.pull_request.labels.*.name, 'minor') }}
+        run: gradle incrementVersion --versionIncrementType=MINOR --versionIncrementBranch=main -PgitUserName=TestaDiRapa -PgitUserEmail=v.c.pierro@gmail.com
+      - name: Creation new version (Patch) 🏷️
+        if: ${{ contains(github.event.pull_request.labels.*.name, 'patch') }}
+        run: gradle incrementVersion --versionIncrementType=PATCH --versionIncrementBranch=main -PgitUserName=TestaDiRapa -PgitUserEmail=v.c.pierro@gmail.com
 
       - name: Publish
         env:
           REPSY_USERNAME: ${{ secrets.REPSY_USERNAME }}
           REPSY_PASSWORD: ${{ secrets.REPSY_PASSWORD }}
-        run: ./gradlew publish
+        run: gradle publish
