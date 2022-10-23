@@ -1,9 +1,11 @@
 name: Publish
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
-      - main
+      - 'main'
 
 jobs:
   build_and_publish:
