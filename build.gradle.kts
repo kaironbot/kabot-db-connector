@@ -3,7 +3,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "1.7.10"
     id("io.kotest") version "0.3.8"
+    id("org.sonarqube") version "3.3"
     id("maven-publish")
+    id("jacoco")
 }
 
 buildscript {
