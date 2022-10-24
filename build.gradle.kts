@@ -60,7 +60,7 @@ publishing {
         register("mavenJava", MavenPublication::class) {
             groupId = "org.wagham"
             artifactId = "kabot-db-connector"
-            version = version
+            version = version.toString().replace("-SNAPSHOT", "")
             from(components["java"])
         }
     }
