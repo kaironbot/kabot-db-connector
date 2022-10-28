@@ -26,5 +26,6 @@ class KabotMultiDBClientTest : StringSpec() {
         testPlayers(client, guildId)
         testSpells(client, guildId)
         testSubclasses(client, guildId)
+        testUtility(client, guildId)
     }
 }
