@@ -1,17 +1,18 @@
 package org.wagham.db.models
 
+import org.bson.codecs.pojo.annotations.BsonId
 import org.wagham.db.utils.findPrevious
 
 data class ExpTable (
-    val levelToExp: Map<Int, Int>,
-    val tierMap: Map<Int, Int>?
+    @BsonId val utilType: String,
+    val table: Map<Int, String>
 ) {
 
-    private val expToLevelMap = levelToExp.keys.fold(mapOf<Int, Int>()) { acc, it ->
-        acc + (levelToExp[it]!! to it)
+    private val levelToExp = table.keys.fold(mapOf<String, Int>()) { acc, it ->
+        acc + (table[it]!! to it)
     }
 
-    fun getLevelsExp() = levelToExp.values.toList()
+    fun levelToExp(level: String) = levelToExp[level]
 
-    fun expToLevel(exp: Float) = expToLevelMap[expToLevelMap.keys.toList().findPrevious(exp)]
+    fun expToLevel(exp: Float) = table[table.keys.toList().findPrevious(exp)]
 }

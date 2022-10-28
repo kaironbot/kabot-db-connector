@@ -24,6 +24,7 @@ class KabotMultiDBClient(
     val playersScope = KabotDBPlayerScope(this)
     val spellsScope = KabotDBSpellScope(this)
     val subclassesScope = KabotDBSubclassScope(this)
+    val utilityScope = KabotDBUtilityScope(this)
 
     init {
         runBlocking {
