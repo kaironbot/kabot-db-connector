@@ -25,6 +25,7 @@ data class CharacterWithPlayer (
     val masterMS: Int,
     @JsonProperty("PBCMS") val pbcMS: Int,
     val errataMS: Int,
+    val sessionMS: Int,
     val errata: List<Errata>,
     val created: Date?,
     val lastPlayed: Date?,
