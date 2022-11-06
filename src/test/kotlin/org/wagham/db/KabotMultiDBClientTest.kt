@@ -3,6 +3,7 @@ package org.wagham.db
 import io.kotest.core.spec.style.StringSpec
 import org.wagham.db.models.MongoCredentials
 import org.wagham.db.scopes.*
+import testBounties
 
 class KabotMultiDBClientTest : StringSpec() {
 
@@ -20,6 +21,8 @@ class KabotMultiDBClientTest : StringSpec() {
 
     init {
         testBackgrounds(client, guildId)
+        testBounties(client, guildId)
+        testBuildings(client, guildId)
         testCharacters(client, guildId)
         testFeats(client, guildId)
         testItems(client, guildId)
