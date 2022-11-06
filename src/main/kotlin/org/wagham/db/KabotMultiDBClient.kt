@@ -18,6 +18,8 @@ class KabotMultiDBClient(
     private lateinit var databaseCache: Map<String, CoroutineDatabase>
 
     val backgroundsScope = KabotDBBackgroundScope(this)
+    val bountiesScope = KabotDBBountyScope(this)
+    val buildingsScope = KabotDBBuildingScope(this)
     val featsScope = KabotDBFeatScope(this)
     val charactersScope = KabotDBCharacterScope(this)
     val itemsScope = KabotDBItemScope(this)
