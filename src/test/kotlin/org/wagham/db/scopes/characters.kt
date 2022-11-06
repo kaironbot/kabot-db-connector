@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.onEach
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
 import org.wagham.db.enums.CharacterStatus
@@ -40,6 +41,14 @@ fun KabotMultiDBClientTest.testCharacters(
 
     "getCharactersWithPlayer should be able to get data for all the characters if no parameter is passed" {
         client.charactersScope.getCharactersWithPlayer(guildId).count() shouldBeGreaterThan 0
+    }
+
+    "getCharactersWithPlayer should be able to get data for all the characters with a parameter" {
+        client.charactersScope.getCharactersWithPlayer(guildId, CharacterStatus.active)
+            .onEach {
+                it.status shouldBe CharacterStatus.active
+            }
+            .count() shouldBeGreaterThan 0
     }
 
 }
