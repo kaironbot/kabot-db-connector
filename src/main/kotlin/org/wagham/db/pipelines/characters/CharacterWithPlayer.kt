@@ -36,15 +36,12 @@ data class CharacterWithPlayer (
     val languages: List<String> = listOf(),
     val money: Float = 0f,
     val proficiencies: List<String> = listOf()
-)
-
-
-class CharactersWithPlayer {
+) {
     companion object {
 
         fun getPipeline(status: CharacterStatus?): List<Bson> {
             val matchStep = if (status != null) listOf(match(Document(mapOf("status" to status))))
-                else listOf()
+            else listOf()
             return matchStep +
                     lookup("players", "player", "_id", "player") +
                     unwind("\$player", UnwindOptions()

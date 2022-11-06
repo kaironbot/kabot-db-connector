@@ -7,7 +7,6 @@ import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.exceptions.NoActiveCharacterException
 import org.wagham.db.models.Character
 import org.wagham.db.pipelines.characters.CharacterWithPlayer
-import org.wagham.db.pipelines.characters.CharactersWithPlayer
 
 
 class KabotDBCharacterScope(
@@ -29,7 +28,7 @@ class KabotDBCharacterScope(
     fun getCharactersWithPlayer(guildId: String, status: CharacterStatus? = null) =
         client.getGuildDb(guildId)
             ?.getCollection<Character>("characters")
-            ?.aggregate<CharacterWithPlayer>(CharactersWithPlayer.getPipeline(status))
+            ?.aggregate<CharacterWithPlayer>(CharacterWithPlayer.getPipeline(status))
             ?.toFlow()
             ?: throw InvalidGuildException(guildId)
 
