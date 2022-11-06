@@ -9,7 +9,7 @@ data class ReputationRequirement(
 )
 
 data class Item (
-    @BsonId @JsonProperty("_id") val name: String,
+    @BsonId val name: String,
     @JsonProperty("sell_price") val sellPrice: Float,
     @JsonProperty("sell_proficiencies") val sellProficiencies: List<String> = listOf(),
     @JsonProperty("sell_building_requirement") val sellBuildingRequirement: String?,
