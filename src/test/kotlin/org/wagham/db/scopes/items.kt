@@ -16,7 +16,7 @@ fun KabotMultiDBClientTest.testItems(
 ) {
     
     "getAllItems should be able to get all the items" {
-        val items = client.itemsScope.getAllItems(guildId).count() shouldBeGreaterThan 0
+        client.itemsScope.getAllItems(guildId).count() shouldBeGreaterThan 0
     }
 
 }
