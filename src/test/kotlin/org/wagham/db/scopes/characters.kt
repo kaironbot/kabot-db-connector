@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.toList
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
 import org.wagham.db.enums.CharacterStatus
