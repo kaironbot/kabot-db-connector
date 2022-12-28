@@ -22,6 +22,13 @@ fun KabotMultiDBClientTest.testCharacters(
         client.charactersScope.getAllCharacters(guildId).count() shouldBeGreaterThan 0
     }
 
+    "getAllCharacters should be able of getting all the characters with a certain status" {
+        client.charactersScope.getAllCharacters(guildId, CharacterStatus.active)
+            .onEach {
+                it.status shouldBe CharacterStatus.active
+            }.count() shouldBeGreaterThan 0
+    }
+
     "getActiveCharacter should be able to get the active character for a player" {
         val anActiveCharacter = client.charactersScope.getAllCharacters(guildId).firstOrNull{ it.status == CharacterStatus.active}
         anActiveCharacter shouldNotBe null
