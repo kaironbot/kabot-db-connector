@@ -21,8 +21,14 @@ class KabotDBCharacterScope(
         } ?: throw InvalidGuildException(guildId)
     }
 
-    fun getAllCharacters(guildId: String) =
-        client.getGuildDb(guildId)?.getCollection<Character>("characters")?.find("{}")?.toFlow()
+    fun getAllCharacters(guildId: String, status: CharacterStatus? = null) =
+        client.getGuildDb(guildId)?.getCollection<Character>("characters")
+            ?.find(Document(
+                status?.let {
+                    mapOf("status" to status)
+                } ?: emptyMap<String, String>()
+            ))
+            ?.toFlow()
             ?: throw InvalidGuildException(guildId)
 
     fun getCharactersWithPlayer(guildId: String, status: CharacterStatus? = null) =
