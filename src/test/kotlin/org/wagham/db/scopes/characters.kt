@@ -41,6 +41,17 @@ fun KabotMultiDBClientTest.testCharacters(
         activeCharacter.status shouldBe CharacterStatus.active
     }
 
+    "ms function should be able to get the correct ms for a player" {
+        val c = client.charactersScope.getAllCharacters(guildId).firstOrNull{ it.status == CharacterStatus.active}
+        c shouldNotBe null
+        c!!.ms() shouldBe listOf(
+            c.sessionMS,
+            c.errataMS,
+            c.pbcMS,
+            c.masterMS
+        ).sum()
+    }
+
     "getActiveCharacter should not be able to get data for a non existing player" {
         shouldThrow<NoActiveCharacterException> {
             client.charactersScope.getActiveCharacter(guildId, "I_DO_NOT_EXIST")

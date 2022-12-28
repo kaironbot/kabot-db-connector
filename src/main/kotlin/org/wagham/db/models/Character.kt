@@ -26,4 +26,8 @@ data class Character (
     val languages: List<String> = listOf(),
     val money: Float = 0f,
     val proficiencies: List<String> = listOf()
-)
+) {
+
+    fun ms() = listOf(masterMS, pbcMS, errataMS, sessionMS).sum()
+
+}
