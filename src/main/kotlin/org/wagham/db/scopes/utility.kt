@@ -5,7 +5,7 @@ import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.ExpTable
-import org.wagham.db.models.utils.SkillList
+import org.wagham.db.models.ProficiencyList
 
 class KabotDBUtilityScope(
     private val client: KabotMultiDBClient
@@ -14,13 +14,13 @@ class KabotDBUtilityScope(
     suspend fun getExpTable(guildId: String) =
         client.getGuildDb(guildId)?.let {
             it.getCollection<ExpTable>("utils")
-            .findOne( ExpTable::utilType eq "msTable") ?: throw ResourceNotFoundException("ExpTable")
+            .findOne( ExpTable::utilType eq "msTable") ?: throw ResourceNotFoundException("ExpTable", "utils")
         } ?: throw InvalidGuildException(guildId)
 
     suspend fun getProficiencies(guildId: String) =
         client.getGuildDb(guildId)?.let {
-            it.getCollection<SkillList>("utils")
-            .findOne(SkillList::utilType eq "proficiencies")
+            it.getCollection<ProficiencyList>("utils")
+            .findOne(ProficiencyList::utilType eq "proficiencies")
             ?.values ?: emptyList()
         } ?: throw InvalidGuildException(guildId)
 

@@ -1,12 +1,15 @@
 package org.wagham.db.scopes
 
+import com.mongodb.client.model.FindOneAndUpdateOptions
+import com.mongodb.client.model.ReturnDocument
+import org.bson.Document
+import org.litote.kmongo.addToSet
 import org.litote.kmongo.eq
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.exceptions.NoActiveCharacterException
 import org.wagham.db.models.Character
-import org.wagham.db.models.Proficiency
 import org.wagham.db.pipelines.characters.CharacterWithPlayer
 
 
@@ -32,13 +35,14 @@ class KabotDBCharacterScope(
             ?.toFlow()
             ?: throw InvalidGuildException(guildId)
 
-    fun addCharacterProficiency(guildId: String, character: String, proficiency: Proficiency) =
+    suspend fun addCharacterProficiency(guildId: String, character: String, proficiency: String) =
         client.getGuildDb(guildId)?.let {
             it.getCollection<Character>("characters")
                 .findOneAndUpdate(
                     Character::name eq character,
-
-                )
+                    addToSet(Character::proficiencies, proficiency),
+                    FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)
+                )?.proficiencies?.contains(proficiency) ?: false
         } ?: throw InvalidGuildException(guildId)
 
     fun getCharactersWithPlayer(guildId: String, status: CharacterStatus? = null) =

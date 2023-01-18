@@ -1,10 +1,8 @@
 package org.wagham.db.scopes
 
 import com.mongodb.client.model.UpdateOptions
-import org.bson.Document
 import org.litote.kmongo.addToSet
 import org.litote.kmongo.eq
-import org.litote.kmongo.setValue
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.exceptions.ResourceNotFoundException
@@ -48,7 +46,7 @@ class KabotDBFlameScope(
             ) ?: FlameCount(dateId, 0)
             db.getCollection<FlameCount>("flamecount").updateOne(
                 FlameCount::date eq dateId,
-                currentCount.copy( count = currentCount.count+1),
+                currentCount.copy( count = currentCount.count+count),
                 UpdateOptions().upsert(true)
             )
         } ?: throw InvalidGuildException(guildId)

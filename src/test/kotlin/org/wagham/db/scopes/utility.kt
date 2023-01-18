@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.count
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
+import org.wagham.db.exceptions.InvalidGuildException
 
 fun KabotMultiDBClientTest.testUtility(
     client: KabotMultiDBClient,
@@ -98,6 +99,16 @@ fun KabotMultiDBClientTest.testUtility(
         expTable.tier.size shouldBeGreaterThan 0
         shouldThrow<IllegalArgumentException> {
             expTable.tierToExp("I_DO_NOT_EXIST")
+        }
+    }
+
+    "Should be able of getting the proficiencies in a Guild" {
+        client.utilityScope.getProficiencies(guildId).size shouldBeGreaterThan 0
+    }
+
+    "Should not be able of getting the proficiencies for a non-existent Guild" {
+        shouldThrow<InvalidGuildException> {
+            client.utilityScope.getProficiencies("I_DO_NOT_EXIST")
         }
     }
 
