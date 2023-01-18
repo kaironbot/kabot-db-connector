@@ -1,5 +1,6 @@
 package org.wagham.db
 
+import com.mongodb.reactivestreams.client.ClientSession
 import io.kotest.common.runBlocking
 import kotlinx.coroutines.flow.fold
 import org.litote.kmongo.coroutine.*
@@ -51,11 +52,11 @@ class KabotMultiDBClient(
 
     fun getGuildDb(guildId: String): CoroutineDatabase? = databaseCache[guildId]
 
-    suspend fun transaction(guildId: String, block: () -> Boolean) {
+    suspend fun transaction(guildId: String, block: suspend (ClientSession) -> Boolean) {
         if (clientCache[guildId] == null) throw InvalidGuildException(guildId)
         clientCache[guildId]!!.startSession().use {
             it.startTransaction()
-            if (block()) it.commitTransactionAndAwait()
+            if (block(it)) it.commitTransactionAndAwait()
             else it.abortTransactionAndAwait()
         }
     }
