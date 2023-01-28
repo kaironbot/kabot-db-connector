@@ -45,7 +45,7 @@ class KabotDBCharacterScope(
             ))
             .toFlow()
 
-    suspend fun addCharacterProficiency(guildId: String, characterName: String, proficiency: String) =
+    suspend fun addProficiencyToCharacter(guildId: String, characterName: String, proficiency: String) =
         client.getGuildDb(guildId)
             .getCollection<Character>("characters")
             .updateOne(
@@ -53,7 +53,7 @@ class KabotDBCharacterScope(
                 addToSet(Character::proficiencies, proficiency)
             ).modifiedCount == 1L
 
-    suspend fun addCharacterProficiency(session: ClientSession, guildId: String, characterName: String, proficiency: String) =
+    suspend fun addProficiencyToCharacter(session: ClientSession, guildId: String, characterName: String, proficiency: String) =
         client.getGuildDb(guildId)
             .getCollection<Character>("characters")
             .updateOne(
@@ -62,7 +62,7 @@ class KabotDBCharacterScope(
                 addToSet(Character::proficiencies, proficiency)
             ).modifiedCount == 1L
 
-    suspend fun removeCharacterProficiency(guildId: String, characterName: String, proficiency: String) =
+    suspend fun removeProficiencyFromCharacter(guildId: String, characterName: String, proficiency: String) =
         client.getGuildDb(guildId)
             .getCollection<Character>("characters")
             .updateOne(

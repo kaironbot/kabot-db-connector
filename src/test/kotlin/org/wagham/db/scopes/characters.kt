@@ -5,7 +5,6 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.floats.shouldBeGreaterThan
 import io.kotest.matchers.ints.shouldBeGreaterThan
-import io.kotest.matchers.maps.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.*
@@ -15,7 +14,6 @@ import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.exceptions.NoActiveCharacterException
 import org.wagham.db.exceptions.ResourceNotFoundException
 import java.util.UUID
-import kotlin.random.Random
 
 fun KabotMultiDBClientTest.testCharacters(
     client: KabotMultiDBClient,
@@ -79,7 +77,7 @@ fun KabotMultiDBClientTest.testCharacters(
             it.name.startsWith(('A'..'Z').random().toString())
         }
         val newProficiency = UUID.randomUUID().toString()
-        client.charactersScope.addCharacterProficiency(
+        client.charactersScope.addProficiencyToCharacter(
             guildId,
             character.name,
             newProficiency
@@ -87,7 +85,7 @@ fun KabotMultiDBClientTest.testCharacters(
 
         client.charactersScope.getCharacter(guildId, character.name).proficiencies shouldContain newProficiency
 
-        client.charactersScope.removeCharacterProficiency(
+        client.charactersScope.removeProficiencyFromCharacter(
             guildId,
             character.name,
             newProficiency
@@ -101,7 +99,7 @@ fun KabotMultiDBClientTest.testCharacters(
             it.name.startsWith(('A'..'Z').random().toString())
         }
         val newProficiency = UUID.randomUUID().toString()
-        client.charactersScope.addCharacterProficiency(
+        client.charactersScope.addProficiencyToCharacter(
             guildId,
             character.name,
             newProficiency
@@ -109,7 +107,7 @@ fun KabotMultiDBClientTest.testCharacters(
 
         client.charactersScope.getCharacter(guildId, character.name).proficiencies shouldContain newProficiency
 
-        client.charactersScope.addCharacterProficiency(
+        client.charactersScope.addProficiencyToCharacter(
             guildId,
             character.name,
             newProficiency
@@ -121,7 +119,7 @@ fun KabotMultiDBClientTest.testCharacters(
             it.name.startsWith(('A'..'Z').random().toString())
         }
         val newProficiency = UUID.randomUUID().toString()
-        client.charactersScope.removeCharacterProficiency(
+        client.charactersScope.removeProficiencyFromCharacter(
             guildId,
             character.name,
             newProficiency
@@ -168,7 +166,7 @@ fun KabotMultiDBClientTest.testCharacters(
         val character = client.charactersScope.getAllCharacters(guildId).first { it.money > 0 }
         val newProficiency = UUID.randomUUID().toString()
         client.transaction(guildId) {
-            client.charactersScope.addCharacterProficiency(it, guildId, character.name, newProficiency) shouldBe true
+            client.charactersScope.addProficiencyToCharacter(it, guildId, character.name, newProficiency) shouldBe true
             client.charactersScope.getCharacter(it, guildId, character.name).proficiencies shouldContain newProficiency
             throw Exception("I do not like it")
         }
