@@ -43,7 +43,6 @@ fun KabotMultiDBClientTest.testFlame(
             calendar.get(Calendar.MONTH)+1,
             calendar.get(Calendar.DAY_OF_MONTH), 0, 0, 0)
         val currentDate = Date.from(startingDate.toInstant(ZoneOffset.UTC))
-        println(calendar)
         client.flameScope.addToFlameCount(guildId).modifiedCount shouldBe 1
         client.flameScope.getFlameCount(guildId).first { it.date == currentDate }.count shouldBeGreaterThan 0
     }

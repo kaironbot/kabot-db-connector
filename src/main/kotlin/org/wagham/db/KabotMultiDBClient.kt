@@ -1,10 +1,11 @@
 package org.wagham.db
 
+import com.mongodb.reactivestreams.client.ClientSession
 import io.kotest.common.runBlocking
 import kotlinx.coroutines.flow.fold
-import org.litote.kmongo.coroutine.CoroutineDatabase
-import org.litote.kmongo.coroutine.coroutine
+import org.litote.kmongo.coroutine.*
 import org.litote.kmongo.reactivestreams.KMongo
+import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.models.MongoCredentials
 import org.wagham.db.scopes.*
 
@@ -15,7 +16,8 @@ class KabotMultiDBClient(
     private val adminDatabase = KMongo.createClient(
         credentials.toConnectionString()
     ).coroutine.getDatabase(credentials.database)
-    private lateinit var databaseCache: Map<String, CoroutineDatabase>
+    private val databaseCache: Map<String, CoroutineDatabase>
+    private val clientCache: Map<String, CoroutineClient>
 
     val backgroundsScope = KabotDBBackgroundScope(this)
     val bountiesScope = KabotDBBountyScope(this)
@@ -32,16 +34,36 @@ class KabotMultiDBClient(
     val utilityScope = KabotDBUtilityScope(this)
 
     init {
+        var initResult: Pair<Map<String, CoroutineClient>, Map<String, CoroutineDatabase>> = Pair(emptyMap(), emptyMap())
         runBlocking {
-            databaseCache = adminDatabase.getCollection<MongoCredentials>("credentials")
+            initResult = adminDatabase.getCollection<MongoCredentials>("credentials")
                 .find("{}").toFlow()
-                .fold(mapOf()) { acc, guildCredentials ->
-                    acc + (guildCredentials.guildId to
-                            KMongo.createClient(guildCredentials.toConnectionString()).coroutine.getDatabase(guildCredentials.database))
-
+                .fold(Pair(emptyMap(), emptyMap())) { acc, guildCredentials ->
+                    val client = KMongo.createClient(guildCredentials.toConnectionString()).coroutine
+                    Pair(
+                        acc.first + (guildCredentials.guildId to client),
+                        acc.second + (guildCredentials.guildId to client.getDatabase(guildCredentials.database))
+                    )
                 }
         }
+        clientCache = initResult.first
+        databaseCache = initResult.second
     }
 
-    fun getGuildDb(guildId: String): CoroutineDatabase? = databaseCache[guildId]
+    fun getGuildDb(guildId: String): CoroutineDatabase = databaseCache[guildId] ?: throw InvalidGuildException(guildId)
+
+    suspend fun transaction(guildId: String, block: suspend (ClientSession) -> Boolean) {
+        if (clientCache[guildId] == null) throw InvalidGuildException(guildId)
+        clientCache[guildId]!!.startSession().use {
+            it.startTransaction()
+            try {
+                block(it)
+            } catch (e: Exception) {
+                false
+            }.let { result ->
+                if (result) it.commitTransactionAndAwait()
+                else it.abortTransactionAndAwait()
+            }
+        }
+    }
 }
