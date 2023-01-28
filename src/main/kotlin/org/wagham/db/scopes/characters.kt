@@ -81,6 +81,27 @@ class KabotDBCharacterScope(
                 ).modifiedCount == 1L
         }
 
+    suspend fun removeItemFromInventory(session: ClientSession, guildId: String, characterName: String, item: String, qty: Int) =
+        client.getGuildDb(guildId).let {
+            val c = getCharacter(session, guildId, characterName)
+            val updatedCharacter = when {
+                c.inventory[item] == null -> c
+                c.inventory[item]!! <= qty -> c.copy(
+                    inventory = c.inventory - item
+                )
+                c.inventory[item]!! > qty -> c.copy(
+                    inventory = c.inventory + (item to c.inventory[item]!! - qty)
+                )
+                else -> c
+            }
+            it.getCollection<Character>("characters")
+                .updateOne(
+                    session,
+                    Character::name eq characterName,
+                    updatedCharacter
+                ).modifiedCount == 1L
+        }
+
     fun getCharactersWithPlayer(guildId: String, status: CharacterStatus? = null) =
         client.getGuildDb(guildId)
             .getCollection<Character>("characters")
