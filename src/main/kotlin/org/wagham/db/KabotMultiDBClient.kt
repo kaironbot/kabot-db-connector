@@ -50,14 +50,20 @@ class KabotMultiDBClient(
         databaseCache = initResult.second
     }
 
-    fun getGuildDb(guildId: String): CoroutineDatabase? = databaseCache[guildId]
+    fun getGuildDb(guildId: String): CoroutineDatabase = databaseCache[guildId] ?: throw InvalidGuildException(guildId)
 
     suspend fun transaction(guildId: String, block: suspend (ClientSession) -> Boolean) {
         if (clientCache[guildId] == null) throw InvalidGuildException(guildId)
         clientCache[guildId]!!.startSession().use {
             it.startTransaction()
-            if (block(it)) it.commitTransactionAndAwait()
-            else it.abortTransactionAndAwait()
+            try {
+                block(it)
+            } catch (e: Exception) {
+                false
+            }.let { result ->
+                if (result) it.commitTransactionAndAwait()
+                else it.abortTransactionAndAwait()
+            }
         }
     }
 }

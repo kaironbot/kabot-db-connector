@@ -4,7 +4,6 @@ import com.mongodb.client.model.UpdateOptions
 import org.litote.kmongo.addToSet
 import org.litote.kmongo.eq
 import org.wagham.db.KabotMultiDBClient
-import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.Flame
 import org.wagham.db.models.FlameCount
@@ -16,25 +15,23 @@ class KabotDBFlameScope(
     private val client: KabotMultiDBClient
 ) {
     suspend fun getFlame(guildId: String) =
-        client.getGuildDb(guildId)?.let { db ->
-            db.getCollection<Flame>("flame").findOne(
+        client.getGuildDb(guildId)
+            .getCollection<Flame>("flame").findOne(
                 Flame::id eq "flame"
             )?.flame ?: throw ResourceNotFoundException("flame", "flame")
-        } ?: throw InvalidGuildException(guildId)
 
     suspend fun addFlame(guildId: String, newFlame: String) =
-        client.getGuildDb(guildId)?.let { db ->
-            db.getCollection<Flame>("flame").findOneAndUpdate(
+        client.getGuildDb(guildId)
+            .getCollection<Flame>("flame").findOneAndUpdate(
                 Flame::id eq "flame",
                 addToSet(Flame::flame, newFlame)
             ) ?: throw ResourceNotFoundException("flame", "flame")
-        } ?: throw InvalidGuildException(guildId)
 
     fun getFlameCount(guildId: String) =
-        client.getGuildDb(guildId)?.getCollection<FlameCount>("flamecount")?.find("{}")?.toFlow() ?: throw InvalidGuildException(guildId)
+        client.getGuildDb(guildId).getCollection<FlameCount>("flamecount").find("{}").toFlow()
 
     suspend fun addToFlameCount(guildId: String, count: Int = 1) =
-        client.getGuildDb(guildId)?.let { db ->
+        client.getGuildDb(guildId).let { db ->
             val calendar = Calendar.getInstance()
             val startingDate = LocalDateTime.of(
                 calendar.get(Calendar.YEAR),
@@ -49,6 +46,6 @@ class KabotDBFlameScope(
                 currentCount.copy( count = currentCount.count+count),
                 UpdateOptions().upsert(true)
             )
-        } ?: throw InvalidGuildException(guildId)
+        }
 
 }
