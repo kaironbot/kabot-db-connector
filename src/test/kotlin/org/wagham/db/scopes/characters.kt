@@ -13,7 +13,9 @@ import org.wagham.db.KabotMultiDBClientTest
 import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.exceptions.NoActiveCharacterException
 import org.wagham.db.exceptions.ResourceNotFoundException
+import org.wagham.db.exceptions.TransactionAbortedException
 import java.util.UUID
+import io.kotest.matchers.types.shouldBeInstanceOf
 
 fun KabotMultiDBClientTest.testCharacters(
     client: KabotMultiDBClient,
@@ -143,21 +145,24 @@ fun KabotMultiDBClientTest.testCharacters(
 
     "subtractMoney should be able of subtracting money from a character" {
         val character = client.charactersScope.getAllCharacters(guildId).first { it.money > 0 }
-        client.transaction(guildId) {
+        val result = client.transaction(guildId) {
             client.charactersScope.subtractMoney(it, guildId, character.name, character.money) shouldBe true
             true
         }
+        result.committed shouldBe true
         val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
         updatedCharacter.money shouldBe 0
     }
 
     "All modifications should be preserved in a session but discarded if false is returned" {
         val character = client.charactersScope.getAllCharacters(guildId).first { it.money > 0 }
-        client.transaction(guildId) {
+        val result = client.transaction(guildId) {
             client.charactersScope.subtractMoney(it, guildId, character.name, character.money) shouldBe true
             client.charactersScope.getCharacter(it, guildId, character.name).money shouldBe 0
             false
         }
+        result.committed shouldBe false
+        result.exception.shouldBeInstanceOf<TransactionAbortedException>()
         val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
         updatedCharacter.money shouldBeGreaterThan 0f
     }
@@ -165,49 +170,55 @@ fun KabotMultiDBClientTest.testCharacters(
     "All modifications should be preserved in a session but discarded if an exception is thrown" {
         val character = client.charactersScope.getAllCharacters(guildId).first { it.money > 0 }
         val newProficiency = UUID.randomUUID().toString()
-        client.transaction(guildId) {
+        val result = client.transaction(guildId) {
             client.charactersScope.addProficiencyToCharacter(it, guildId, character.name, newProficiency) shouldBe true
             client.charactersScope.getCharacter(it, guildId, character.name).proficiencies shouldContain newProficiency
-            throw Exception("I do not like it")
+            throw IllegalArgumentException("I do not like it")
         }
+        result.committed shouldBe false
+        result.exception.shouldBeInstanceOf<IllegalArgumentException>()
+        result.exception?.message shouldBe "I do not like it"
         val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
         updatedCharacter.proficiencies shouldNotContain newProficiency
     }
 
     "removeItemFromInventory should be able of removing an item from a character inventory" {
-        val character = client.charactersScope.getAllCharacters(guildId).first { it.inventory.isNotEmpty() }
+        val character = client.charactersScope.getAllCharacters(guildId).first { it.inventory.isNotEmpty() && it.inventory.keys.firstOrNull{ c -> it.inventory[c]!! > 1 } != null}
         val itemToRemove = character.inventory.keys.first{ character.inventory[it]!! > 1 }
         val otherItem = (character.inventory.keys - itemToRemove).random()
-        client.transaction(guildId) {
+        val result = client.transaction(guildId) {
             client.charactersScope.removeItemFromInventory(it, guildId, character.name, itemToRemove, 1) shouldBe true
             true
         }
+        result.committed shouldBe true
         val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
         updatedCharacter.inventory[itemToRemove] shouldBe (character.inventory[itemToRemove]!! - 1)
         updatedCharacter.inventory[otherItem] shouldBe character.inventory[otherItem]
     }
 
     "removeItemFromInventory should be able of removing all types of an item from a character inventory" {
-        val character = client.charactersScope.getAllCharacters(guildId).first { it.inventory.isNotEmpty() }
+        val character = client.charactersScope.getAllCharacters(guildId).first { it.inventory.isNotEmpty() && it.inventory.keys.firstOrNull{ c -> it.inventory[c]!! > 1 } != null}
         val itemToRemove = character.inventory.keys.first{ character.inventory[it]!! > 1 }
         val otherItem = (character.inventory.keys - itemToRemove).random()
-        client.transaction(guildId) {
+        val result = client.transaction(guildId) {
             client.charactersScope.removeItemFromInventory(it, guildId, character.name, itemToRemove, character.inventory[itemToRemove]!!) shouldBe true
             true
         }
+        result.committed shouldBe true
         val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
         updatedCharacter.inventory.keys shouldNotContain itemToRemove
         updatedCharacter.inventory[otherItem] shouldBe character.inventory[otherItem]
     }
 
     "removeItemFromInventory should be able of removing all types of an item from a character inventory by removing more than the existing quantity" {
-        val character = client.charactersScope.getAllCharacters(guildId).first { it.inventory.isNotEmpty() }
+        val character = client.charactersScope.getAllCharacters(guildId).first { it.inventory.isNotEmpty() && it.inventory.keys.firstOrNull{ c -> it.inventory[c]!! > 1 } != null}
         val itemToRemove = character.inventory.keys.first{ character.inventory[it]!! > 1 }
         val otherItem = (character.inventory.keys - itemToRemove).random()
-        client.transaction(guildId) {
+        val result = client.transaction(guildId) {
             client.charactersScope.removeItemFromInventory(it, guildId, character.name, itemToRemove, character.inventory[itemToRemove]!! + 2) shouldBe true
             true
         }
+        result.committed shouldBe true
         val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
         updatedCharacter.inventory.keys shouldNotContain itemToRemove
         updatedCharacter.inventory[otherItem] shouldBe character.inventory[otherItem]
@@ -217,10 +228,11 @@ fun KabotMultiDBClientTest.testCharacters(
         val character = client.charactersScope.getAllCharacters(guildId).first { it.inventory.isNotEmpty() }
         val itemToRemove = UUID.randomUUID().toString()
         val otherItem = (character.inventory.keys - itemToRemove).random()
-        client.transaction(guildId) {
+        val result = client.transaction(guildId) {
             client.charactersScope.removeItemFromInventory(it, guildId, character.name, itemToRemove, 1) shouldBe false
             true
         }
+        result.committed shouldBe true
         val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
         updatedCharacter.inventory.keys shouldNotContain itemToRemove
         updatedCharacter.inventory[otherItem] shouldBe character.inventory[otherItem]
