@@ -6,7 +6,9 @@ import kotlinx.coroutines.flow.fold
 import org.litote.kmongo.coroutine.*
 import org.litote.kmongo.reactivestreams.KMongo
 import org.wagham.db.exceptions.InvalidGuildException
+import org.wagham.db.exceptions.TransactionAbortedException
 import org.wagham.db.models.MongoCredentials
+import org.wagham.db.models.client.TransactionResult
 import org.wagham.db.scopes.*
 
 class KabotMultiDBClient(
@@ -52,17 +54,21 @@ class KabotMultiDBClient(
 
     fun getGuildDb(guildId: String): CoroutineDatabase = databaseCache[guildId] ?: throw InvalidGuildException(guildId)
 
-    suspend fun transaction(guildId: String, block: suspend (ClientSession) -> Boolean) {
+    suspend fun transaction(guildId: String, block: suspend (ClientSession) -> Boolean): TransactionResult {
         if (clientCache[guildId] == null) throw InvalidGuildException(guildId)
-        clientCache[guildId]!!.startSession().use {
+        return clientCache[guildId]!!.startSession().use {
             it.startTransaction()
             try {
-                block(it)
+                if (block(it)) {
+                    it.commitTransactionAndAwait()
+                    TransactionResult(true)
+                }
+                else throw TransactionAbortedException()
             } catch (e: Exception) {
-                false
-            }.let { result ->
-                if (result) it.commitTransactionAndAwait()
-                else it.abortTransactionAndAwait()
+                TransactionResult(
+                    false,
+                    e
+                )
             }
         }
     }
