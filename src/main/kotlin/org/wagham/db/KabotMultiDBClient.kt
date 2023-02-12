@@ -31,6 +31,7 @@ class KabotMultiDBClient(
     val playersScope = KabotDBPlayerScope(this)
     val raceScope = KabotDBRaceScope(this)
     val serverConfigScope = KabotDBServerConfigScope(this)
+    val sessionScope = KabotDBSessionScope(this)
     val spellsScope = KabotDBSpellScope(this)
     val subclassesScope = KabotDBSubclassScope(this)
     val utilityScope = KabotDBUtilityScope(this)
