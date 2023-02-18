@@ -1,6 +1,7 @@
 package org.wagham.db.scopes
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -8,6 +9,10 @@ import kotlinx.coroutines.flow.count
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
 import org.wagham.db.exceptions.InvalidGuildException
+import org.wagham.db.exceptions.ResourceNotFoundException
+import org.wagham.db.models.Announcement
+import org.wagham.db.models.AnnouncementBatch
+import java.util.UUID
 
 fun KabotMultiDBClientTest.testUtility(
     client: KabotMultiDBClient,
@@ -111,5 +116,47 @@ fun KabotMultiDBClientTest.testUtility(
             client.utilityScope.getProficiencies("I_DO_NOT_EXIST")
         }
     }
+
+    "Should be able of getting the announcements in a Guild" {
+        client.utilityScope.getAnnouncements(guildId, "prizes").let {
+            it.id shouldBe "prizes"
+            it.fail.size shouldBeGreaterThan 0
+            it.criticalFail.size shouldBeGreaterThan 0
+            it.success.size shouldBeGreaterThan 0
+            it.jackpot.size shouldBeGreaterThan 0
+            it.lostBeast.size shouldBeGreaterThan 0
+            it.winBeast.size shouldBeGreaterThan 0
+        }
+    }
+
+    "Should not be able of getting the announcements for a non-existent Guild" {
+        shouldThrow<InvalidGuildException> {
+            client.utilityScope.getAnnouncements("I_DO_NOT_EXIST", "prizes")
+        }
+    }
+
+    "Should not be able of getting the announcements of a non-existent batch" {
+        shouldThrow<ResourceNotFoundException> {
+            client.utilityScope.getAnnouncements(guildId, "I_DO_NOT_EXIST")
+        }
+    }
+
+    "Should be able of updating the announcements" {
+        val newContent = UUID.randomUUID().toString()
+        val announcements = client.utilityScope.getAnnouncements(guildId, "prizes").let {
+            it.copy(
+                success = it.success + Announcement(newContent)
+            )
+        }
+
+        client.utilityScope.updateAnnouncements(guildId, "prizes", announcements) shouldBe true
+
+        val newAnnouncements = client.utilityScope.getAnnouncements(guildId, "prizes")
+
+        newAnnouncements.id shouldBe "prizes"
+        newAnnouncements.success.map { it.rawString } shouldContain newContent
+
+    }
+
 
 }

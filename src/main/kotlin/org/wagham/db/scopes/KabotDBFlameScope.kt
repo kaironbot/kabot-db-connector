@@ -2,6 +2,7 @@ package org.wagham.db.scopes
 
 import com.mongodb.client.model.UpdateOptions
 import org.litote.kmongo.addToSet
+import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.exceptions.ResourceNotFoundException
@@ -12,17 +13,21 @@ import java.time.ZoneOffset
 import java.util.*
 
 class KabotDBFlameScope(
-    private val client: KabotMultiDBClient
-) {
+    override val client: KabotMultiDBClient
+) : KabotDBScope<Flame> {
+
+    override val collectionName = "flame"
+
+    override fun getMainCollection(guildId: String): CoroutineCollection<Flame> =
+        client.getGuildDb(guildId).getCollection(collectionName)
+
     suspend fun getFlame(guildId: String) =
-        client.getGuildDb(guildId)
-            .getCollection<Flame>("flame").findOne(
+        getMainCollection(guildId).findOne(
                 Flame::id eq "flame"
             )?.flame ?: throw ResourceNotFoundException("flame", "flame")
 
     suspend fun addFlame(guildId: String, newFlame: String) =
-        client.getGuildDb(guildId)
-            .getCollection<Flame>("flame").findOneAndUpdate(
+        getMainCollection(guildId).findOneAndUpdate(
                 Flame::id eq "flame",
                 addToSet(Flame::flame, newFlame)
             ) ?: throw ResourceNotFoundException("flame", "flame")
