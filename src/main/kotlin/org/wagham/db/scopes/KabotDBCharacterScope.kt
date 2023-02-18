@@ -3,6 +3,7 @@ package org.wagham.db.scopes
 import com.mongodb.reactivestreams.client.ClientSession
 import org.bson.Document
 import org.litote.kmongo.*
+import org.litote.kmongo.coroutine.CoroutineCollection
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.exceptions.NoActiveCharacterException
@@ -12,32 +13,32 @@ import org.wagham.db.pipelines.characters.CharacterWithPlayer
 
 
 class KabotDBCharacterScope(
-    private val client: KabotMultiDBClient
-) {
+    override val client: KabotMultiDBClient
+) : KabotDBScope<Character> {
 
-    suspend fun getActiveCharacter(guildId: String, playerId: String): Character {
-        return client.getGuildDb(guildId).let {
-            val col = it.getCollection<Character>("characters")
-            col.findOne(Character::status eq CharacterStatus.active, Character::player eq playerId)
-                ?: throw NoActiveCharacterException(playerId)
-        }
-    }
+    override val collectionName = "characters"
+
+    override fun getMainCollection(guildId: String): CoroutineCollection<Character> =
+        client.getGuildDb(guildId).getCollection(collectionName)
+
+    suspend fun getActiveCharacter(guildId: String, playerId: String): Character =
+        getMainCollection(guildId)
+            .findOne(Character::status eq CharacterStatus.active, Character::player eq playerId)
+            ?: throw NoActiveCharacterException(playerId)
 
     suspend fun getCharacter(guildId: String, characterName: String): Character =
-        client.getGuildDb(guildId)
-            .getCollection<Character>("characters")
+        getMainCollection(guildId)
             .findOne(Character::name eq characterName)
             ?: throw ResourceNotFoundException(characterName, "characters")
 
     suspend fun getCharacter(session: ClientSession, guildId: String, characterName: String): Character =
-        client.getGuildDb(guildId)
-            .getCollection<Character>("characters")
+        getMainCollection(guildId)
             .findOne(session, Character::name eq characterName)
             ?: throw ResourceNotFoundException(characterName, "characters")
 
 
     fun getAllCharacters(guildId: String, status: CharacterStatus? = null) =
-        client.getGuildDb(guildId).getCollection<Character>("characters")
+        getMainCollection(guildId)
             .find(Document(
                 status?.let {
                     mapOf("status" to status)
@@ -46,16 +47,14 @@ class KabotDBCharacterScope(
             .toFlow()
 
     suspend fun addProficiencyToCharacter(guildId: String, characterName: String, proficiency: String) =
-        client.getGuildDb(guildId)
-            .getCollection<Character>("characters")
+        getMainCollection(guildId)
             .updateOne(
                 Character::name eq characterName,
                 addToSet(Character::proficiencies, proficiency)
             ).modifiedCount == 1L
 
     suspend fun addProficiencyToCharacter(session: ClientSession, guildId: String, characterName: String, proficiency: String) =
-        client.getGuildDb(guildId)
-            .getCollection<Character>("characters")
+        getMainCollection(guildId)
             .updateOne(
                 session,
                 Character::name eq characterName,
@@ -63,8 +62,7 @@ class KabotDBCharacterScope(
             ).modifiedCount == 1L
 
     suspend fun removeProficiencyFromCharacter(guildId: String, characterName: String, proficiency: String) =
-        client.getGuildDb(guildId)
-            .getCollection<Character>("characters")
+        getMainCollection(guildId)
             .updateOne(
                 Character::name eq characterName,
                 pull(Character::proficiencies, proficiency),
@@ -73,7 +71,7 @@ class KabotDBCharacterScope(
     suspend fun subtractMoney(session: ClientSession, guildId: String, characterName: String, qty: Float) =
         client.getGuildDb(guildId).let {
             val character = getCharacter(session, guildId, characterName)
-            it.getCollection<Character>("characters")
+            it.getCollection<Character>(collectionName)
                 .updateOne(
                     session,
                     Character::name eq characterName,
@@ -94,7 +92,7 @@ class KabotDBCharacterScope(
                 )
                 else -> c
             }
-            it.getCollection<Character>("characters")
+            it.getCollection<Character>(collectionName)
                 .updateOne(
                     session,
                     Character::name eq characterName,
@@ -103,8 +101,7 @@ class KabotDBCharacterScope(
         }
 
     fun getCharactersWithPlayer(guildId: String, status: CharacterStatus? = null) =
-        client.getGuildDb(guildId)
-            .getCollection<Character>("characters")
+        getMainCollection(guildId)
             .aggregate<CharacterWithPlayer>(CharacterWithPlayer.getPipeline(status))
             .toFlow()
 
