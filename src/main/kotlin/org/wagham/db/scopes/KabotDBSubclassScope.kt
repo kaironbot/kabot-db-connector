@@ -1,13 +1,28 @@
 package org.wagham.db.scopes
 
+import org.litote.kmongo.coroutine.CoroutineCollection
 import org.wagham.db.KabotMultiDBClient
+import org.wagham.db.models.Spell
 import org.wagham.db.models.Subclass
 
 class KabotDBSubclassScope(
-    private val client: KabotMultiDBClient
-) {
+    override val client: KabotMultiDBClient
+) : KabotDBScope<Subclass> {
+
+    override val collectionName = "classes"
+
+    override fun getMainCollection(guildId: String): CoroutineCollection<Subclass> =
+        client.getGuildDb(guildId).getCollection(collectionName)
+
     fun getAllSubclasses(guildId: String) =
-        client.getGuildDb(guildId).getCollection<Subclass>("classes").find("{}").toFlow()
+        getMainCollection(guildId).find("{}").toFlow()
+
+    suspend fun rewriteAllSubclasses(guildId: String, classes: List<Subclass>) =
+        getMainCollection(guildId)
+            .let {
+                it.deleteMany("{}")
+                it.insertMany(classes)
+            }.insertedIds.size == classes.size
 
 }
 

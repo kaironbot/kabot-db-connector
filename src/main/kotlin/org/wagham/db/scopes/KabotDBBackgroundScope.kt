@@ -1,12 +1,26 @@
 package org.wagham.db.scopes
 
+import org.litote.kmongo.coroutine.CoroutineCollection
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.models.Background
 
 class KabotDBBackgroundScope(
-    private val client: KabotMultiDBClient
-) {
+    override val client: KabotMultiDBClient
+) : KabotDBScope<Background> {
+
+    override val collectionName = "backgrounds"
+
+    override fun getMainCollection(guildId: String): CoroutineCollection<Background> =
+        client.getGuildDb(guildId).getCollection(collectionName)
+
     fun getAllBackgrounds(guildId: String) =
-        client.getGuildDb(guildId).getCollection<Background>("backgrounds").find("{}").toFlow()
+        getMainCollection(guildId).find("{}").toFlow()
+
+    suspend fun rewriteAllBackgrounds(guildId: String, backgrounds: List<Background>) =
+        getMainCollection(guildId)
+            .let {
+                it.deleteMany("{}")
+                it.insertMany(backgrounds)
+            }.insertedIds.size == backgrounds.size
 }
 
