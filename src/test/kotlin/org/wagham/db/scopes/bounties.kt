@@ -1,7 +1,13 @@
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.toList
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
+import org.wagham.db.exceptions.InvalidGuildException
+import org.wagham.db.models.Prize
+import java.util.*
 
 fun KabotMultiDBClientTest.testBounties(
     client: KabotMultiDBClient,
@@ -9,5 +15,35 @@ fun KabotMultiDBClientTest.testBounties(
 ) {
     "getAllBounties should be able to get all the bounties" {
         client.bountiesScope.getAllBounties(guildId).count() shouldBeGreaterThan 0
+    }
+
+    "getAllBounties should not be able of getting the backgrounds for a non-existent guild" {
+        shouldThrow<InvalidGuildException> {
+            client.bountiesScope.getAllBounties("I_DO_NOT_EXIST")
+        }
+    }
+
+    "Should be able of rewriting the whole bounties collection" {
+        val bounties = client.bountiesScope.getAllBounties(guildId).toList()
+        val bountyToEdit = bounties.random().copy(
+            prizes = emptyList()
+        )
+        client.bountiesScope.rewriteAllBounties(
+            guildId,
+            bounties.filter { it.id != bountyToEdit.id } + bountyToEdit
+        ) shouldBe true
+        val newBounties = client.bountiesScope.getAllBounties(guildId).toList()
+        newBounties.size shouldBe bounties.size
+        newBounties.first { it.id == bountyToEdit.id }.prizes.size shouldBe 0
+    }
+
+    "Should not be able of updating the bounties for a non-existent guild" {
+        val bounties = client.bountiesScope.getAllBounties(guildId).toList()
+        shouldThrow<InvalidGuildException> {
+            client.bountiesScope.rewriteAllBounties(
+                UUID.randomUUID().toString(),
+                bounties
+            )
+        }
     }
 }

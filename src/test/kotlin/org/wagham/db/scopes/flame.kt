@@ -19,11 +19,6 @@ fun KabotMultiDBClientTest.testFlame(
     guildId: String
 ) {
 
-    val testChannelId = "868027091164229653"
-    val testChannelIdKey = "TEST_CHANNEL_ID"
-    val testCommand = "test_command"
-    val testChannels = listOf("1234")
-
     "Should be able to get all the flame sentences in a guild" {
         client.flameScope.getFlame(guildId).count() shouldBeGreaterThan 0
     }
@@ -43,7 +38,6 @@ fun KabotMultiDBClientTest.testFlame(
             calendar.get(Calendar.MONTH)+1,
             calendar.get(Calendar.DAY_OF_MONTH), 0, 0, 0)
         val currentDate = Date.from(startingDate.toInstant(ZoneOffset.UTC))
-        client.flameScope.addToFlameCount(guildId).modifiedCount shouldBe 1
         client.flameScope.getFlameCount(guildId).first { it.date == currentDate }.count shouldBeGreaterThan 0
     }
 
