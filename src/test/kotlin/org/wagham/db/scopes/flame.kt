@@ -3,6 +3,7 @@ package org.wagham.db.scopes
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.first
@@ -13,6 +14,7 @@ import org.wagham.db.models.ServerConfig
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*
+import kotlin.random.Random
 
 fun KabotMultiDBClientTest.testFlame(
     client: KabotMultiDBClient,
@@ -38,7 +40,9 @@ fun KabotMultiDBClientTest.testFlame(
             calendar.get(Calendar.MONTH)+1,
             calendar.get(Calendar.DAY_OF_MONTH), 0, 0, 0)
         val currentDate = Date.from(startingDate.toInstant(ZoneOffset.UTC))
-        client.flameScope.getFlameCount(guildId).first { it.date == currentDate }.count shouldBeGreaterThan 0
+        val count = Random.nextInt()
+        client.flameScope.addToFlameCount(guildId, count)
+        client.flameScope.getFlameCount(guildId).first { it.date == currentDate }.count shouldBeGreaterThanOrEqual count
     }
 
     "Should not be able to get the flame for a non-existing Guild" {

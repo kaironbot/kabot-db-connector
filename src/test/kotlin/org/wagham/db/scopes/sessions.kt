@@ -7,6 +7,10 @@ import kotlinx.coroutines.flow.*
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
 import org.wagham.db.exceptions.InvalidGuildException
+import org.wagham.db.utils.dateAtMidnight
+import org.wagham.db.utils.daysInBetween
+import java.time.DayOfWeek
+import java.util.*
 
 fun KabotMultiDBClientTest.testSessions(
     client: KabotMultiDBClient,
@@ -31,6 +35,27 @@ fun KabotMultiDBClientTest.testSessions(
                 client.charactersScope.getCharacter(guildId, it.master).player shouldBe masterPlayer
                 it.masterCharacter.player shouldBe masterPlayer
             }.count() shouldBeGreaterThan 0
+    }
+
+    "Can calculate the days passed in-game between two dates" {
+        val calendar = Calendar.getInstance()
+        val startDate = client.sessionScope.getAllSessions(guildId).take(1000).toList().random().date
+        calendar.time = startDate
+        calendar.add(Calendar.DAY_OF_WEEK, +7)
+        val endDate = calendar.time
+
+        val normalizedStartDate = dateAtMidnight(startDate)
+        val normalizedEndDate = dateAtMidnight(endDate)
+        val inGameDays = client.sessionScope
+            .getAllSessions(guildId)
+            .filter {
+                it.date in normalizedStartDate..normalizedEndDate
+            }.toList()
+            .groupBy { it.date }
+            .map { sessions -> sessions.value.maxOf { it.duration } }
+            .sum() + 1L + daysInBetween(normalizedStartDate, normalizedEndDate)
+
+        client.sessionScope.getTimePassedInGame(guildId, startDate, endDate) shouldBe inGameDays
     }
 
 }

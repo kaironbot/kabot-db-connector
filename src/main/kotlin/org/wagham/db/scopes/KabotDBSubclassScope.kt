@@ -2,7 +2,6 @@ package org.wagham.db.scopes
 
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.wagham.db.KabotMultiDBClient
-import org.wagham.db.models.Spell
 import org.wagham.db.models.Subclass
 
 class KabotDBSubclassScope(
