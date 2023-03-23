@@ -1,6 +1,9 @@
 package org.wagham.db.scopes
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.comparables.shouldBeGreaterThan
+import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo
+import io.kotest.matchers.comparables.shouldBeLessThanOrEqualTo
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.*
@@ -19,6 +22,37 @@ fun KabotMultiDBClientTest.testSessions(
 
     "getAllSessions should be able to get all the sessions" {
         client.sessionScope.getAllSessions(guildId).count() shouldBeGreaterThan 0
+    }
+
+    "getAllSessions should be able to get all the sessions after a certain date" {
+        val startingDate = client.sessionScope.getAllSessions(guildId).take(1000).toList().random().date
+        client.sessionScope
+            .getAllSessions(guildId, startDate = startingDate)
+            .onEach {
+                it.date shouldBeGreaterThanOrEqualTo startingDate
+            }.count() shouldBeGreaterThan 0
+    }
+
+    "getAllSessions should be able to get all the sessions before a certain date" {
+        val endDate = client.sessionScope.getAllSessions(guildId).take(1000).toList().random().date
+        client.sessionScope
+            .getAllSessions(guildId, endDate = endDate)
+            .onEach {
+                it.date shouldBeLessThanOrEqualTo endDate
+            }.count() shouldBeGreaterThan 0
+    }
+
+    "getAllSessions should be able to get all the sessions between two dates" {
+        val startingDate = client.sessionScope.getAllSessions(guildId).take(1000).toList().random().date
+        val endDate = client.sessionScope.getAllSessions(guildId).filter {
+            it.date > startingDate
+        }.take(1000).toList().random().date
+        client.sessionScope
+            .getAllSessions(guildId, startDate = startingDate, endDate = endDate)
+            .onEach {
+                it.date shouldBeGreaterThanOrEqualTo startingDate
+                it.date shouldBeLessThanOrEqualTo endDate
+            }.count() shouldBeGreaterThan 0
     }
 
     "Cannot get sessions from a non existent guild" {
