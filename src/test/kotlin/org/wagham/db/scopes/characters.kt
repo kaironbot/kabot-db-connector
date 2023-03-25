@@ -16,6 +16,8 @@ import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.exceptions.TransactionAbortedException
 import java.util.UUID
 import io.kotest.matchers.types.shouldBeInstanceOf
+import org.wagham.db.uuid
+import kotlin.random.Random
 
 fun KabotMultiDBClientTest.testCharacters(
     client: KabotMultiDBClient,
@@ -154,6 +156,18 @@ fun KabotMultiDBClientTest.testCharacters(
         updatedCharacter.money shouldBe 0
     }
 
+    "addMoney should be able of add money from a character" {
+        val character = client.charactersScope.getAllCharacters(guildId).take(1000).toList().random()
+        val amount = Random.nextFloat() * 1000
+        val result = client.transaction(guildId) {
+            client.charactersScope.addMoney(it, guildId, character.name, amount) shouldBe true
+            true
+        }
+        result.committed shouldBe true
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        updatedCharacter.money shouldBe character.money + amount
+    }
+
     "All modifications should be preserved in a session but discarded if false is returned" {
         val character = client.charactersScope.getAllCharacters(guildId).first { it.money > 0 }
         val result = client.transaction(guildId) {
@@ -238,4 +252,31 @@ fun KabotMultiDBClientTest.testCharacters(
         updatedCharacter.inventory[otherItem] shouldBe character.inventory[otherItem]
     }
 
+    "addItemFromInventory should be able of adding a new item to a character inventory" {
+        val character = client.charactersScope.getAllCharacters(guildId).first { it.inventory.isNotEmpty() }
+        val item = uuid()
+        val qty = Random.nextInt(0, 100)
+        val result = client.transaction(guildId) {
+            client.charactersScope.addItemToInventory(it, guildId, character.name, item, qty) shouldBe true
+            true
+        }
+        result.committed shouldBe true
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        updatedCharacter.inventory[item] shouldBe qty
+    }
+
+    "addItemFromInventory should be able of adding a quantity of an item to a character inventory" {
+        val character = client.charactersScope.getAllCharacters(guildId).first { it.inventory.isNotEmpty() && it.inventory.keys.firstOrNull{ c -> it.inventory[c]!! > 1 } != null}
+        val itemToAdd = character.inventory.keys.first{ character.inventory[it]!! > 1 }
+        val qty = Random.nextInt(0, 100)
+        val otherItem = (character.inventory.keys - itemToAdd).random()
+        val result = client.transaction(guildId) {
+            client.charactersScope.addItemToInventory(it, guildId, character.name, itemToAdd, qty) shouldBe true
+            true
+        }
+        result.committed shouldBe true
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        updatedCharacter.inventory[itemToAdd] shouldBe (character.inventory[itemToAdd]!! + qty)
+        updatedCharacter.inventory[otherItem] shouldBe character.inventory[otherItem]
+    }
 }
