@@ -36,7 +36,6 @@ class KabotDBCharacterScope(
             .findOne(session, Character::name eq characterName)
             ?: throw ResourceNotFoundException(characterName, "characters")
 
-
     fun getAllCharacters(guildId: String, status: CharacterStatus? = null) =
         getMainCollection(guildId)
             .find(Document(
@@ -79,6 +78,17 @@ class KabotDBCharacterScope(
                 ).modifiedCount == 1L
         }
 
+    suspend fun addMoney(session: ClientSession, guildId: String, characterName: String, qty: Float) =
+        client.getGuildDb(guildId).let {
+            val character = getCharacter(session, guildId, characterName)
+            it.getCollection<Character>(collectionName)
+                .updateOne(
+                    session,
+                    Character::name eq characterName,
+                    setValue(Character::money, character.money + qty),
+                ).modifiedCount == 1L
+        }
+
     suspend fun removeItemFromInventory(session: ClientSession, guildId: String, characterName: String, item: String, qty: Int) =
         client.getGuildDb(guildId).let {
             val c = getCharacter(session, guildId, characterName)
@@ -97,6 +107,19 @@ class KabotDBCharacterScope(
                     session,
                     Character::name eq characterName,
                     updatedCharacter
+                ).modifiedCount == 1L
+        }
+
+    suspend fun addItemToInventory(session: ClientSession, guildId: String, characterName: String, item: String, qty: Int) =
+        client.getGuildDb(guildId).let {
+            val c = getCharacter(session, guildId, characterName)
+            it.getCollection<Character>(collectionName)
+                .updateOne(
+                    session,
+                    Character::name eq characterName,
+                    c.copy(
+                        inventory = c.inventory + (item to (c.inventory[item] ?: 0) + qty)
+                    )
                 ).modifiedCount == 1L
         }
 
