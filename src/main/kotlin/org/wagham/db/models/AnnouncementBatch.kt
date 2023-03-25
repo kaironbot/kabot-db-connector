@@ -11,4 +11,16 @@ data class AnnouncementBatch(
     @JsonProperty("Jackpot") val jackpot: List<Announcement>,
     @JsonProperty("LostBeast") val lostBeast: List<Announcement>,
     @JsonProperty("WinBeast") val winBeast: List<Announcement>,
-)
+) {
+
+    fun getAnnouncement(type: AnnouncementType): Announcement =
+        when(type) {
+            AnnouncementType.CriticalFail -> criticalFail.random()
+            AnnouncementType.Fail -> fail.random()
+            AnnouncementType.Success -> success.random()
+            AnnouncementType.Jackpot -> jackpot.random()
+            AnnouncementType.WinBeast -> winBeast.random()
+            AnnouncementType.LostBeast -> lostBeast.random()
+        }
+
+}

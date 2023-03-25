@@ -1,7 +1,9 @@
 package org.wagham.db.models
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.bson.codecs.pojo.annotations.BsonId
+import org.wagham.db.utils.JacksonEmptyStringToNullDeserializer
 
 data class ItemWithProbability(
     @JsonProperty("item_id") val itemId: String,
@@ -14,7 +16,8 @@ data class Prize(
     @JsonProperty("mo_delta") val moDelta: Int,
     @JsonProperty("prize_id") val guaranteedObjectId: String?,
     @JsonProperty("prize_delta") val guaranteedObjectDelta: Int,
-    @JsonProperty("announce_id") val announceId: String?,
+    @JsonProperty("announce_id") @JsonDeserialize(using = JacksonEmptyStringToNullDeserializer::class)
+    val announceId: AnnouncementType?,
     @JsonProperty("prize_list") val prizeList: List<ItemWithProbability> = listOf()
 )
 
