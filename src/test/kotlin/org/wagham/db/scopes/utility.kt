@@ -6,12 +6,16 @@ import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.firstOrNull
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.Announcement
 import org.wagham.db.models.AnnouncementBatch
+import org.wagham.db.models.BuildingMessage
+import org.wagham.db.models.PlayerBuildingsMessages
+import org.wagham.db.uuid
 import java.util.UUID
 
 fun KabotMultiDBClientTest.testUtility(
@@ -155,8 +159,30 @@ fun KabotMultiDBClientTest.testUtility(
 
         newAnnouncements.id shouldBe "prizes"
         newAnnouncements.success.map { it.rawString } shouldContain newContent
-
     }
 
+    "Should be able of creating a PlayerBuildMessage if does not exist" {
+        val messageToCreate = PlayerBuildingsMessages(uuid(), uuid(), uuid(), emptyList())
+        client.utilityScope.updateBuildingMessage(guildId, messageToCreate) shouldBe true
+        client.utilityScope.getBuildingsMessages(guildId).firstOrNull {
+            it.id == messageToCreate.id
+        } shouldNotBe null
+    }
+
+    "Should be able of updating a PlayerBuildMessage" {
+        val messageToCreate = PlayerBuildingsMessages(uuid(), uuid(), uuid(), emptyList())
+        client.utilityScope.updateBuildingMessage(guildId, messageToCreate) shouldBe true
+        val messageToUpdate = messageToCreate.copy(messages = listOf(
+            BuildingMessage(uuid(), uuid(), uuid(), uuid())
+        ))
+        client.utilityScope.updateBuildingMessage(guildId, messageToUpdate) shouldBe true
+        client.utilityScope.getBuildingsMessages(guildId).firstOrNull {
+            it.id == messageToCreate.id
+        }.let {
+            it shouldNotBe null
+            it!!.messages.size shouldBe 1
+            it.messages.first().messageId shouldBe messageToUpdate.messages.first().messageId
+        }
+    }
 
 }
