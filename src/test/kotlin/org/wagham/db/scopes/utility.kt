@@ -185,4 +185,22 @@ fun KabotMultiDBClientTest.testUtility(
         }
     }
 
+    "Can determine if two instances of PlayerBuildinsMessages are equal" {
+        val m1 = BuildingMessage(uuid(), uuid(), uuid(), uuid())
+        val m2 = BuildingMessage(uuid(), uuid(), uuid(), uuid())
+        val m3 = BuildingMessage(uuid(), uuid(), uuid(), uuid())
+
+        val pm1 = PlayerBuildingsMessages(uuid(), uuid(), uuid(), listOf(m1, m2))
+        val pm2 = pm1.copy(messages = listOf(m2, m1))
+        val pm3 = pm1.copy(messages = listOf(m1))
+        val pm4 = pm1.copy(messages = listOf(m1, m3))
+        val pm5 = pm1.copy(id = uuid())
+
+        (pm1 == pm2) shouldBe true
+        (pm1 == pm3) shouldBe false
+        (pm1 == pm4) shouldBe false
+        (pm1 == pm5) shouldBe false
+
+    }
+
 }
