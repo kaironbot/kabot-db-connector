@@ -6,7 +6,9 @@ import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.AnnouncementBatch
 import org.wagham.db.models.ExpTable
+import org.wagham.db.models.PlayerBuildingsMessages
 import org.wagham.db.models.ProficiencyList
+import org.wagham.db.utils.isSuccessful
 
 class KabotDBUtilityScope(
     private val client: KabotMultiDBClient
@@ -37,5 +39,20 @@ class KabotDBUtilityScope(
                 AnnouncementBatch::id eq batchId,
                 batch,
                 UpdateOptions().upsert(true)
-            ).modifiedCount == 1L
+            ).isSuccessful()
+
+    fun getBuildingsMessages(guildId: String) =
+        client.getGuildDb(guildId)
+            .getCollection<PlayerBuildingsMessages>("building_messages")
+            .find()
+            .toFlow()
+
+    suspend fun updateBuildingMessage(guildId: String, message: PlayerBuildingsMessages) =
+        client.getGuildDb(guildId)
+            .getCollection<PlayerBuildingsMessages>("building_messages")
+            .updateOne(
+                PlayerBuildingsMessages::id eq message.id,
+                message,
+                UpdateOptions().upsert(true)
+            ).isSuccessful()
 }
