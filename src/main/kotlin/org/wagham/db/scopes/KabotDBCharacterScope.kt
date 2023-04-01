@@ -8,6 +8,7 @@ import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.exceptions.NoActiveCharacterException
 import org.wagham.db.exceptions.ResourceNotFoundException
+import org.wagham.db.models.Building
 import org.wagham.db.models.Character
 import org.wagham.db.pipelines.characters.CharacterWithPlayer
 
@@ -119,6 +120,20 @@ class KabotDBCharacterScope(
                     Character::name eq characterName,
                     c.copy(
                         inventory = c.inventory + (item to (c.inventory[item] ?: 0) + qty)
+                    )
+                ).modifiedCount == 1L
+        }
+
+    suspend fun addBuilding(session: ClientSession, guildId: String, characterName: String, building: Building, buildingType: String) =
+        client.getGuildDb(guildId).let {
+            val c = getCharacter(session, guildId, characterName)
+            it.getCollection<Character>(collectionName)
+                .updateOne(
+                    session,
+                    Character::name eq characterName,
+                    c.copy(
+                        buildings = c.buildings +
+                            (buildingType to (c.buildings[buildingType] ?: emptyList()) + building)
                     )
                 ).modifiedCount == 1L
         }

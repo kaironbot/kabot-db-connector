@@ -5,6 +5,7 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.floats.shouldBeGreaterThan
 import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.*
@@ -16,6 +17,7 @@ import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.exceptions.TransactionAbortedException
 import java.util.UUID
 import io.kotest.matchers.types.shouldBeInstanceOf
+import org.wagham.db.models.Building
 import org.wagham.db.uuid
 import kotlin.random.Random
 
@@ -278,5 +280,51 @@ fun KabotMultiDBClientTest.testCharacters(
         val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
         updatedCharacter.inventory[itemToAdd] shouldBe (character.inventory[itemToAdd]!! + qty)
         updatedCharacter.inventory[otherItem] shouldBe character.inventory[otherItem]
+    }
+
+    "addBuilding can add a building of a new type to a character" {
+        val character = client.charactersScope.getAllCharacters(guildId).take(1000).toList().random()
+        val newBuilding = Building(uuid(), uuid(), uuid(), uuid())
+        val buildingType = uuid()
+        val result = client.transaction(guildId) {
+            client.charactersScope.addBuilding(
+                it,
+                guildId,
+                character.name,
+                newBuilding,
+                buildingType
+            )
+            true
+        }
+        result.committed shouldBe true
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        updatedCharacter.buildings[buildingType] shouldNotBe null
+        updatedCharacter.buildings[buildingType]!!.size shouldBe 1
+        updatedCharacter.buildings[buildingType]!!.first() shouldBe newBuilding
+    }
+
+    "addBuilding can add a building of an existing type to a character" {
+        val character = client.charactersScope.getAllCharacters(guildId)
+            .first { it.buildings.isNotEmpty() }
+
+        val newBuilding = Building(uuid(), uuid(), uuid(), uuid())
+        val buildingType = character.buildings.keys.first()
+        val result = client.transaction(guildId) {
+            client.charactersScope.addBuilding(
+                it,
+                guildId,
+                character.name,
+                newBuilding,
+                buildingType
+            )
+            true
+        }
+        result.committed shouldBe true
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        updatedCharacter.buildings[buildingType] shouldNotBe null
+        updatedCharacter.buildings[buildingType]!!.size shouldBeGreaterThan 1
+        updatedCharacter.buildings[buildingType]!!.find {
+          it.name == newBuilding.name
+        } shouldBe newBuilding
     }
 }
