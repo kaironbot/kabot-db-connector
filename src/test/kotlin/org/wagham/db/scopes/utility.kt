@@ -185,7 +185,7 @@ fun KabotMultiDBClientTest.testUtility(
         }
     }
 
-    "Can determine if two instances of PlayerBuildinsMessages are equal" {
+    "Can determine if two instances of PlayerBuildingsMessages are equal" {
         val m1 = BuildingMessage(uuid(), uuid(), uuid(), uuid())
         val m2 = BuildingMessage(uuid(), uuid(), uuid(), uuid())
         val m3 = BuildingMessage(uuid(), uuid(), uuid(), uuid())
