@@ -1,6 +1,8 @@
 package org.wagham.db.scopes
 
+import com.mongodb.client.model.Updates
 import com.mongodb.reactivestreams.client.ClientSession
+import org.bson.BsonDocument
 import org.bson.Document
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
@@ -110,6 +112,13 @@ class KabotDBCharacterScope(
                     updatedCharacter
                 ).modifiedCount == 1L
         }
+
+    suspend fun removeItemFromAllInventories(session: ClientSession, guildId: String, item: String) =
+        getMainCollection(guildId).updateMany(
+            session,
+            BsonDocument(),
+            Updates.unset("inventory.$item")
+        ).let { true }
 
     suspend fun addItemToInventory(session: ClientSession, guildId: String, characterName: String, item: String, qty: Int) =
         client.getGuildDb(guildId).let {
