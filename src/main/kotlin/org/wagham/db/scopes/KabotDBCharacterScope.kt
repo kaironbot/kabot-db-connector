@@ -1,7 +1,10 @@
 package org.wagham.db.scopes
 
+import com.mongodb.client.model.Updates
 import com.mongodb.reactivestreams.client.ClientSession
+import org.bson.BsonDocument
 import org.bson.Document
+import org.intellij.lang.annotations.Language
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.wagham.db.KabotMultiDBClient
@@ -61,11 +64,27 @@ class KabotDBCharacterScope(
                 addToSet(Character::proficiencies, proficiency)
             ).modifiedCount == 1L
 
+    suspend fun addLanguageToCharacter(session: ClientSession, guildId: String, characterName: String, language: String) =
+        getMainCollection(guildId)
+            .updateOne(
+                session,
+                Character::name eq characterName,
+                addToSet(Character::languages, language)
+            ).modifiedCount == 1L
+
     suspend fun removeProficiencyFromCharacter(guildId: String, characterName: String, proficiency: String) =
         getMainCollection(guildId)
             .updateOne(
                 Character::name eq characterName,
                 pull(Character::proficiencies, proficiency),
+            ).modifiedCount == 1L
+
+    suspend fun removeLanguageFromCharacter(session: ClientSession, guildId: String, characterName: String, language: String) =
+        getMainCollection(guildId)
+            .updateOne(
+                session,
+                Character::name eq characterName,
+                pull(Character::languages, language),
             ).modifiedCount == 1L
 
     suspend fun subtractMoney(session: ClientSession, guildId: String, characterName: String, qty: Float) =
@@ -110,6 +129,13 @@ class KabotDBCharacterScope(
                     updatedCharacter
                 ).modifiedCount == 1L
         }
+
+    suspend fun removeItemFromAllInventories(session: ClientSession, guildId: String, item: String) =
+        getMainCollection(guildId).updateMany(
+            session,
+            BsonDocument(),
+            Updates.unset("inventory.$item")
+        ).let { true }
 
     suspend fun addItemToInventory(session: ClientSession, guildId: String, characterName: String, item: String, qty: Int) =
         client.getGuildDb(guildId).let {
