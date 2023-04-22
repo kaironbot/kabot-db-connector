@@ -77,62 +77,6 @@ fun KabotMultiDBClientTest.testCharacters(
             .count() shouldBeGreaterThan 0
     }
 
-    "Should be able to add and remove a proficiency to a Character" {
-        val character = client.charactersScope.getAllCharacters(guildId).first{
-            it.name.startsWith(('A'..'Z').random().toString())
-        }
-        val newProficiency = UUID.randomUUID().toString()
-        client.charactersScope.addProficiencyToCharacter(
-            guildId,
-            character.name,
-            newProficiency
-        ) shouldBe true
-
-        client.charactersScope.getCharacter(guildId, character.name).proficiencies shouldContain newProficiency
-
-        client.charactersScope.removeProficiencyFromCharacter(
-            guildId,
-            character.name,
-            newProficiency
-        ) shouldBe true
-
-        client.charactersScope.getCharacter(guildId, character.name).proficiencies shouldNotContain newProficiency
-    }
-
-    "Adding a proficiency two times should result in a failure" {
-        val character = client.charactersScope.getAllCharacters(guildId).first{
-            it.name.startsWith(('A'..'Z').random().toString())
-        }
-        val newProficiency = UUID.randomUUID().toString()
-        client.charactersScope.addProficiencyToCharacter(
-            guildId,
-            character.name,
-            newProficiency
-        ) shouldBe true
-
-        client.charactersScope.getCharacter(guildId, character.name).proficiencies shouldContain newProficiency
-
-        client.charactersScope.addProficiencyToCharacter(
-            guildId,
-            character.name,
-            newProficiency
-        ) shouldBe false
-    }
-
-    "Removing a non-existent proficiency should result in a failure" {
-        val character = client.charactersScope.getAllCharacters(guildId).first{
-            it.name.startsWith(('A'..'Z').random().toString())
-        }
-        val newProficiency = UUID.randomUUID().toString()
-        client.charactersScope.removeProficiencyFromCharacter(
-            guildId,
-            character.name,
-            newProficiency
-        ) shouldBe false
-
-        client.charactersScope.getCharacter(guildId, character.name).proficiencies shouldNotContain newProficiency
-    }
-
     "getCharacter should throw an exception when trying to get a non-existing character" {
         shouldThrow<ResourceNotFoundException> {
             client.charactersScope.getCharacter(guildId, "I_DO_NOT_EXIST")

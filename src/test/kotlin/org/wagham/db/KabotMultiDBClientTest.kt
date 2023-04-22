@@ -5,6 +5,7 @@ import org.wagham.db.models.MongoCredentials
 import org.wagham.db.scopes.*
 import org.wagham.db.scopes.characters.testCharacters
 import org.wagham.db.scopes.characters.testCharactersInventories
+import org.wagham.db.scopes.characters.testCharactersProficiencies
 import testBounties
 
 class KabotMultiDBClientTest : StringSpec() {
@@ -27,6 +28,7 @@ class KabotMultiDBClientTest : StringSpec() {
         testBuildings(client, guildId)
         testCharacters(client, guildId)
         testCharactersInventories(client, guildId)
+        testCharactersProficiencies(client, guildId)
         testFeats(client, guildId)
         testFlame(client, guildId)
         testItems(client, guildId)
