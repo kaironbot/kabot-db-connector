@@ -6,6 +6,8 @@ import org.wagham.db.scopes.*
 import org.wagham.db.scopes.characters.testCharacters
 import org.wagham.db.scopes.characters.testCharactersInventories
 import org.wagham.db.scopes.characters.testCharactersProficiencies
+import org.wagham.db.scopes.utility.testExpTable
+import org.wagham.db.scopes.utility.testUtility
 import testBounties
 
 class KabotMultiDBClientTest : StringSpec() {
@@ -29,6 +31,7 @@ class KabotMultiDBClientTest : StringSpec() {
         testCharacters(client, guildId)
         testCharactersInventories(client, guildId)
         testCharactersProficiencies(client, guildId)
+        testExpTable(client, guildId)
         testFeats(client, guildId)
         testFlame(client, guildId)
         testItems(client, guildId)
