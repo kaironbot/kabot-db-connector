@@ -16,7 +16,8 @@ import org.wagham.db.models.Player
 import java.util.*
 
 data class CharacterWithPlayer (
-    @BsonId val name: String,
+    @BsonId val id: String,
+    val name: String,
     val player: Player,
     val race: String?,
     val territory: String?,

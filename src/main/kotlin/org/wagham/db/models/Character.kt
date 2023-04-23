@@ -6,7 +6,8 @@ import org.wagham.db.enums.CharacterStatus
 import java.util.Date
 
 data class Character (
-    @BsonId val name: String,
+    @BsonId val id: String,
+    val name: String,
     val player: String,
     val race: String?,
     val territory: String?,
