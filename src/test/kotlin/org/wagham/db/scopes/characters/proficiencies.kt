@@ -20,19 +20,19 @@ fun KabotMultiDBClientTest.testCharactersProficiencies(
         val newProficiency = uuid()
         client.charactersScope.addProficiencyToCharacter(
             guildId,
-            character.name,
+            character.id,
             newProficiency
         ) shouldBe true
 
-        client.charactersScope.getCharacter(guildId, character.name).proficiencies shouldContain newProficiency
+        client.charactersScope.getCharacter(guildId, character.id).proficiencies shouldContain newProficiency
 
         client.charactersScope.removeProficiencyFromCharacter(
             guildId,
-            character.name,
+            character.id,
             newProficiency
         ) shouldBe true
 
-        client.charactersScope.getCharacter(guildId, character.name).proficiencies shouldNotContain newProficiency
+        client.charactersScope.getCharacter(guildId, character.id).proficiencies shouldNotContain newProficiency
     }
 
     "Adding a proficiency two times should result in a failure" {
@@ -42,15 +42,15 @@ fun KabotMultiDBClientTest.testCharactersProficiencies(
         val newProficiency = uuid()
         client.charactersScope.addProficiencyToCharacter(
             guildId,
-            character.name,
+            character.id,
             newProficiency
         ) shouldBe true
 
-        client.charactersScope.getCharacter(guildId, character.name).proficiencies shouldContain newProficiency
+        client.charactersScope.getCharacter(guildId, character.id).proficiencies shouldContain newProficiency
 
         client.charactersScope.addProficiencyToCharacter(
             guildId,
-            character.name,
+            character.id,
             newProficiency
         ) shouldBe false
     }
@@ -62,11 +62,11 @@ fun KabotMultiDBClientTest.testCharactersProficiencies(
         val newProficiency = uuid()
         client.charactersScope.removeProficiencyFromCharacter(
             guildId,
-            character.name,
+            character.id,
             newProficiency
         ) shouldBe false
 
-        client.charactersScope.getCharacter(guildId, character.name).proficiencies shouldNotContain newProficiency
+        client.charactersScope.getCharacter(guildId, character.id).proficiencies shouldNotContain newProficiency
     }
 
     "Should be able to add and remove a language to a Character" {
@@ -78,25 +78,25 @@ fun KabotMultiDBClientTest.testCharactersProficiencies(
             client.charactersScope.addLanguageToCharacter(
                 it,
                 guildId,
-                character.name,
+                character.id,
                 newLanguage
             ) shouldBe true
             true
         }.committed shouldBe true
 
-        client.charactersScope.getCharacter(guildId, character.name).languages shouldContain newLanguage
+        client.charactersScope.getCharacter(guildId, character.id).languages shouldContain newLanguage
 
         client.transaction(guildId) {
             client.charactersScope.removeLanguageFromCharacter(
                 it,
                 guildId,
-                character.name,
+                character.id,
                 newLanguage
             ) shouldBe true
             true
         }
 
-        client.charactersScope.getCharacter(guildId, character.name).languages shouldNotContain newLanguage
+        client.charactersScope.getCharacter(guildId, character.id).languages shouldNotContain newLanguage
     }
 
     "Adding a language two times should result in a failure" {
@@ -109,20 +109,20 @@ fun KabotMultiDBClientTest.testCharactersProficiencies(
             client.charactersScope.addLanguageToCharacter(
                 it,
                 guildId,
-                character.name,
+                character.id,
                 newLanguage
             ) shouldBe true
             true
         }.committed shouldBe true
 
 
-        client.charactersScope.getCharacter(guildId, character.name).languages shouldContain newLanguage
+        client.charactersScope.getCharacter(guildId, character.id).languages shouldContain newLanguage
 
         client.transaction(guildId) {
             client.charactersScope.addLanguageToCharacter(
                 it,
                 guildId,
-                character.name,
+                character.id,
                 newLanguage
             ) shouldBe false
             false
@@ -139,12 +139,12 @@ fun KabotMultiDBClientTest.testCharactersProficiencies(
             client.charactersScope.removeLanguageFromCharacter(
                 it,
                 guildId,
-                character.name,
+                character.id,
                 newLanguage
             ) shouldBe false
             false
         }.committed shouldBe false
 
-        client.charactersScope.getCharacter(guildId, character.name).languages shouldNotContain newLanguage
+        client.charactersScope.getCharacter(guildId, character.id).languages shouldNotContain newLanguage
     }
 }

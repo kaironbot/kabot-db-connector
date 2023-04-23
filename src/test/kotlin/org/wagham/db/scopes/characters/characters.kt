@@ -85,7 +85,7 @@ fun KabotMultiDBClientTest.testCharacters(
 
     "getCharacter should be able to get an existing character" {
         val aRandomCharacter = client.charactersScope.getAllCharacters(guildId).take(100).toList().random()
-        val fetchedCharacter = client.charactersScope.getCharacter(guildId, aRandomCharacter.name)
+        val fetchedCharacter = client.charactersScope.getCharacter(guildId, aRandomCharacter.id)
         aRandomCharacter.name shouldBe fetchedCharacter.name
         aRandomCharacter.characterClass shouldBe fetchedCharacter.characterClass
     }
@@ -93,11 +93,11 @@ fun KabotMultiDBClientTest.testCharacters(
     "subtractMoney should be able of subtracting money from a character" {
         val character = client.charactersScope.getAllCharacters(guildId).first { it.money > 0 }
         val result = client.transaction(guildId) {
-            client.charactersScope.subtractMoney(it, guildId, character.name, character.money) shouldBe true
+            client.charactersScope.subtractMoney(it, guildId, character.id, character.money) shouldBe true
             true
         }
         result.committed shouldBe true
-        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
         updatedCharacter.money shouldBe 0
     }
 
@@ -105,24 +105,24 @@ fun KabotMultiDBClientTest.testCharacters(
         val character = client.charactersScope.getAllCharacters(guildId).take(1000).toList().random()
         val amount = Random.nextFloat() * 1000
         val result = client.transaction(guildId) {
-            client.charactersScope.addMoney(it, guildId, character.name, amount) shouldBe true
+            client.charactersScope.addMoney(it, guildId, character.id, amount) shouldBe true
             true
         }
         result.committed shouldBe true
-        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
         updatedCharacter.money shouldBe character.money + amount
     }
 
     "All modifications should be preserved in a session but discarded if false is returned" {
         val character = client.charactersScope.getAllCharacters(guildId).first { it.money > 0 }
         val result = client.transaction(guildId) {
-            client.charactersScope.subtractMoney(it, guildId, character.name, character.money) shouldBe true
-            client.charactersScope.getCharacter(it, guildId, character.name).money shouldBe 0
+            client.charactersScope.subtractMoney(it, guildId, character.id, character.money) shouldBe true
+            client.charactersScope.getCharacter(it, guildId, character.id).money shouldBe 0
             false
         }
         result.committed shouldBe false
         result.exception.shouldBeInstanceOf<TransactionAbortedException>()
-        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
         updatedCharacter.money shouldBeGreaterThan 0f
     }
 
@@ -130,14 +130,14 @@ fun KabotMultiDBClientTest.testCharacters(
         val character = client.charactersScope.getAllCharacters(guildId).first { it.money > 0 }
         val newProficiency = UUID.randomUUID().toString()
         val result = client.transaction(guildId) {
-            client.charactersScope.addProficiencyToCharacter(it, guildId, character.name, newProficiency) shouldBe true
-            client.charactersScope.getCharacter(it, guildId, character.name).proficiencies shouldContain newProficiency
+            client.charactersScope.addProficiencyToCharacter(it, guildId, character.id, newProficiency) shouldBe true
+            client.charactersScope.getCharacter(it, guildId, character.id).proficiencies shouldContain newProficiency
             throw IllegalArgumentException("I do not like it")
         }
         result.committed shouldBe false
         result.exception.shouldBeInstanceOf<IllegalArgumentException>()
         result.exception?.message shouldBe "I do not like it"
-        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
         updatedCharacter.proficiencies shouldNotContain newProficiency
     }
 
@@ -149,14 +149,14 @@ fun KabotMultiDBClientTest.testCharacters(
             client.charactersScope.addBuilding(
                 it,
                 guildId,
-                character.name,
+                character.id,
                 newBuilding,
                 buildingType
             )
             true
         }
         result.committed shouldBe true
-        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
         updatedCharacter.buildings[buildingType] shouldNotBe null
         updatedCharacter.buildings[buildingType]!!.size shouldBe 1
         updatedCharacter.buildings[buildingType]!!.first() shouldBe newBuilding
@@ -172,14 +172,14 @@ fun KabotMultiDBClientTest.testCharacters(
             client.charactersScope.addBuilding(
                 it,
                 guildId,
-                character.name,
+                character.id,
                 newBuilding,
                 buildingType
             )
             true
         }
         result.committed shouldBe true
-        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
         updatedCharacter.buildings[buildingType] shouldNotBe null
         updatedCharacter.buildings[buildingType]!!.size shouldBeGreaterThan 1
         updatedCharacter.buildings[buildingType]!!.find {

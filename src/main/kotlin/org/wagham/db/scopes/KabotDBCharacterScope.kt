@@ -30,15 +30,15 @@ class KabotDBCharacterScope(
             .findOne(Character::status eq CharacterStatus.active, Character::player eq playerId)
             ?: throw NoActiveCharacterException(playerId)
 
-    suspend fun getCharacter(guildId: String, characterName: String): Character =
+    suspend fun getCharacter(guildId: String, characterId: String): Character =
         getMainCollection(guildId)
-            .findOne(Character::name eq characterName)
-            ?: throw ResourceNotFoundException(characterName, "characters")
+            .findOne(Character::id eq characterId)
+            ?: throw ResourceNotFoundException(characterId, "characters")
 
-    suspend fun getCharacter(session: ClientSession, guildId: String, characterName: String): Character =
+    suspend fun getCharacter(session: ClientSession, guildId: String, characterId: String): Character =
         getMainCollection(guildId)
-            .findOne(session, Character::name eq characterName)
-            ?: throw ResourceNotFoundException(characterName, "characters")
+            .findOne(session, Character::id eq characterId)
+            ?: throw ResourceNotFoundException(characterId, "characters")
 
     fun getAllCharacters(guildId: String, status: CharacterStatus? = null) =
         getMainCollection(guildId)
@@ -49,69 +49,69 @@ class KabotDBCharacterScope(
             ))
             .toFlow()
 
-    suspend fun addProficiencyToCharacter(guildId: String, characterName: String, proficiency: String) =
+    suspend fun addProficiencyToCharacter(guildId: String, characterId: String, proficiency: String) =
         getMainCollection(guildId)
             .updateOne(
-                Character::name eq characterName,
+                Character::id eq characterId,
                 addToSet(Character::proficiencies, proficiency)
             ).modifiedCount == 1L
 
-    suspend fun addProficiencyToCharacter(session: ClientSession, guildId: String, characterName: String, proficiency: String) =
+    suspend fun addProficiencyToCharacter(session: ClientSession, guildId: String, characterId: String, proficiency: String) =
         getMainCollection(guildId)
             .updateOne(
                 session,
-                Character::name eq characterName,
+                Character::id eq characterId,
                 addToSet(Character::proficiencies, proficiency)
             ).modifiedCount == 1L
 
-    suspend fun addLanguageToCharacter(session: ClientSession, guildId: String, characterName: String, language: String) =
+    suspend fun addLanguageToCharacter(session: ClientSession, guildId: String, characterId: String, language: String) =
         getMainCollection(guildId)
             .updateOne(
                 session,
-                Character::name eq characterName,
+                Character::id eq characterId,
                 addToSet(Character::languages, language)
             ).modifiedCount == 1L
 
-    suspend fun removeProficiencyFromCharacter(guildId: String, characterName: String, proficiency: String) =
+    suspend fun removeProficiencyFromCharacter(guildId: String, characterId: String, proficiency: String) =
         getMainCollection(guildId)
             .updateOne(
-                Character::name eq characterName,
+                Character::id eq characterId,
                 pull(Character::proficiencies, proficiency),
             ).modifiedCount == 1L
 
-    suspend fun removeLanguageFromCharacter(session: ClientSession, guildId: String, characterName: String, language: String) =
+    suspend fun removeLanguageFromCharacter(session: ClientSession, guildId: String, characterId: String, language: String) =
         getMainCollection(guildId)
             .updateOne(
                 session,
-                Character::name eq characterName,
+                Character::id eq characterId,
                 pull(Character::languages, language),
             ).modifiedCount == 1L
 
-    suspend fun subtractMoney(session: ClientSession, guildId: String, characterName: String, qty: Float) =
+    suspend fun subtractMoney(session: ClientSession, guildId: String, characterId: String, qty: Float) =
         client.getGuildDb(guildId).let {
-            val character = getCharacter(session, guildId, characterName)
+            val character = getCharacter(session, guildId, characterId)
             it.getCollection<Character>(collectionName)
                 .updateOne(
                     session,
-                    Character::name eq characterName,
+                    Character::id eq characterId,
                     setValue(Character::money, character.money - qty),
                 ).modifiedCount == 1L
         }
 
-    suspend fun addMoney(session: ClientSession, guildId: String, characterName: String, qty: Float) =
+    suspend fun addMoney(session: ClientSession, guildId: String, characterId: String, qty: Float) =
         client.getGuildDb(guildId).let {
-            val character = getCharacter(session, guildId, characterName)
+            val character = getCharacter(session, guildId, characterId)
             it.getCollection<Character>(collectionName)
                 .updateOne(
                     session,
-                    Character::name eq characterName,
+                    Character::id eq characterId,
                     setValue(Character::money, character.money + qty),
                 ).modifiedCount == 1L
         }
 
-    suspend fun removeItemFromInventory(session: ClientSession, guildId: String, characterName: String, item: String, qty: Int) =
+    suspend fun removeItemFromInventory(session: ClientSession, guildId: String, characterId: String, item: String, qty: Int) =
         client.getGuildDb(guildId).let {
-            val c = getCharacter(session, guildId, characterName)
+            val c = getCharacter(session, guildId, characterId)
             val updatedCharacter = when {
                 c.inventory[item] == null -> c
                 c.inventory[item]!! <= qty -> c.copy(
@@ -125,7 +125,7 @@ class KabotDBCharacterScope(
             it.getCollection<Character>(collectionName)
                 .updateOne(
                     session,
-                    Character::name eq characterName,
+                    Character::id eq characterId,
                     updatedCharacter
                 ).modifiedCount == 1L
         }
@@ -137,26 +137,26 @@ class KabotDBCharacterScope(
             Updates.unset("inventory.$item")
         ).let { true }
 
-    suspend fun addItemToInventory(session: ClientSession, guildId: String, characterName: String, item: String, qty: Int) =
+    suspend fun addItemToInventory(session: ClientSession, guildId: String, characterId: String, item: String, qty: Int) =
         client.getGuildDb(guildId).let {
-            val c = getCharacter(session, guildId, characterName)
+            val c = getCharacter(session, guildId, characterId)
             it.getCollection<Character>(collectionName)
                 .updateOne(
                     session,
-                    Character::name eq characterName,
+                    Character::id eq characterId,
                     c.copy(
                         inventory = c.inventory + (item to (c.inventory[item] ?: 0) + qty)
                     )
                 ).modifiedCount == 1L
         }
 
-    suspend fun addBuilding(session: ClientSession, guildId: String, characterName: String, building: Building, buildingType: String) =
+    suspend fun addBuilding(session: ClientSession, guildId: String, characterId: String, building: Building, buildingType: String) =
         client.getGuildDb(guildId).let {
-            val c = getCharacter(session, guildId, characterName)
+            val c = getCharacter(session, guildId, characterId)
             it.getCollection<Character>(collectionName)
                 .updateOne(
                     session,
-                    Character::name eq characterName,
+                    Character::id eq characterId,
                     c.copy(
                         buildings = c.buildings +
                             (buildingType to (c.buildings[buildingType] ?: emptyList()) + building)

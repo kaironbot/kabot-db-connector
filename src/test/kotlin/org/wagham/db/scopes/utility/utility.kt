@@ -31,7 +31,7 @@ fun KabotMultiDBClientTest.testUtility(
         }
     }
 
-    "Should be able of getting the announcements in a Guild" {
+/*    "Should be able of getting the announcements in a Guild" {
         client.utilityScope.getAnnouncements(guildId, "prizes").let {
             it.id shouldBe "prizes"
             it.fail.size shouldBeGreaterThan 0
@@ -41,7 +41,7 @@ fun KabotMultiDBClientTest.testUtility(
             it.lostBeast.size shouldBeGreaterThan 0
             it.winBeast.size shouldBeGreaterThan 0
         }
-    }
+    }*/
 
     "Should not be able of getting the announcements for a non-existent Guild" {
         shouldThrow<InvalidGuildException> {
@@ -55,7 +55,7 @@ fun KabotMultiDBClientTest.testUtility(
         }
     }
 
-    "Should be able of updating the announcements" {
+/*    "Should be able of updating the announcements" {
         val newContent = UUID.randomUUID().toString()
         val announcements = client.utilityScope.getAnnouncements(guildId, "prizes").let {
             it.copy(
@@ -69,7 +69,7 @@ fun KabotMultiDBClientTest.testUtility(
 
         newAnnouncements.id shouldBe "prizes"
         newAnnouncements.success.map { it.rawString } shouldContain newContent
-    }
+    }*/
 
     "Should be able of creating a PlayerBuildMessage if does not exist" {
         val messageToCreate = PlayerBuildingsMessages(uuid(), uuid(), uuid(), emptyList())

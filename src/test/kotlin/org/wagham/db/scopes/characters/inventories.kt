@@ -23,11 +23,11 @@ fun KabotMultiDBClientTest.testCharactersInventories(
         val itemToRemove = character.inventory.keys.first{ character.inventory[it]!! > 1 }
         val otherItem = (character.inventory.keys - itemToRemove).random()
         val result = client.transaction(guildId) {
-            client.charactersScope.removeItemFromInventory(it, guildId, character.name, itemToRemove, 1) shouldBe true
+            client.charactersScope.removeItemFromInventory(it, guildId, character.id, itemToRemove, 1) shouldBe true
             true
         }
         result.committed shouldBe true
-        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
         updatedCharacter.inventory[itemToRemove] shouldBe (character.inventory[itemToRemove]!! - 1)
         updatedCharacter.inventory[otherItem] shouldBe character.inventory[otherItem]
     }
@@ -37,11 +37,11 @@ fun KabotMultiDBClientTest.testCharactersInventories(
         val itemToRemove = character.inventory.keys.first{ character.inventory[it]!! > 1 }
         val otherItem = (character.inventory.keys - itemToRemove).random()
         val result = client.transaction(guildId) {
-            client.charactersScope.removeItemFromInventory(it, guildId, character.name, itemToRemove, character.inventory[itemToRemove]!!) shouldBe true
+            client.charactersScope.removeItemFromInventory(it, guildId, character.id, itemToRemove, character.inventory[itemToRemove]!!) shouldBe true
             true
         }
         result.committed shouldBe true
-        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
         updatedCharacter.inventory.keys shouldNotContain itemToRemove
         updatedCharacter.inventory[otherItem] shouldBe character.inventory[otherItem]
     }
@@ -51,11 +51,11 @@ fun KabotMultiDBClientTest.testCharactersInventories(
         val itemToRemove = character.inventory.keys.first{ character.inventory[it]!! > 1 }
         val otherItem = (character.inventory.keys - itemToRemove).random()
         val result = client.transaction(guildId) {
-            client.charactersScope.removeItemFromInventory(it, guildId, character.name, itemToRemove, character.inventory[itemToRemove]!! + 2) shouldBe true
+            client.charactersScope.removeItemFromInventory(it, guildId, character.id, itemToRemove, character.inventory[itemToRemove]!! + 2) shouldBe true
             true
         }
         result.committed shouldBe true
-        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
         updatedCharacter.inventory.keys shouldNotContain itemToRemove
         updatedCharacter.inventory[otherItem] shouldBe character.inventory[otherItem]
     }
@@ -65,11 +65,11 @@ fun KabotMultiDBClientTest.testCharactersInventories(
         val itemToRemove = UUID.randomUUID().toString()
         val otherItem = (character.inventory.keys - itemToRemove).random()
         val result = client.transaction(guildId) {
-            client.charactersScope.removeItemFromInventory(it, guildId, character.name, itemToRemove, 1) shouldBe false
+            client.charactersScope.removeItemFromInventory(it, guildId, character.id, itemToRemove, 1) shouldBe false
             true
         }
         result.committed shouldBe true
-        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
         updatedCharacter.inventory.keys shouldNotContain itemToRemove
         updatedCharacter.inventory[otherItem] shouldBe character.inventory[otherItem]
     }
@@ -79,11 +79,11 @@ fun KabotMultiDBClientTest.testCharactersInventories(
         val item = uuid()
         val qty = Random.nextInt(0, 100)
         val result = client.transaction(guildId) {
-            client.charactersScope.addItemToInventory(it, guildId, character.name, item, qty) shouldBe true
+            client.charactersScope.addItemToInventory(it, guildId, character.id, item, qty) shouldBe true
             true
         }
         result.committed shouldBe true
-        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
         updatedCharacter.inventory[item] shouldBe qty
     }
 
@@ -93,11 +93,11 @@ fun KabotMultiDBClientTest.testCharactersInventories(
         val qty = Random.nextInt(0, 100)
         val otherItem = (character.inventory.keys - itemToAdd).random()
         val result = client.transaction(guildId) {
-            client.charactersScope.addItemToInventory(it, guildId, character.name, itemToAdd, qty) shouldBe true
+            client.charactersScope.addItemToInventory(it, guildId, character.id, itemToAdd, qty) shouldBe true
             true
         }
         result.committed shouldBe true
-        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.name)
+        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
         updatedCharacter.inventory[itemToAdd] shouldBe (character.inventory[itemToAdd]!! + qty)
         updatedCharacter.inventory[otherItem] shouldBe character.inventory[otherItem]
     }
@@ -108,7 +108,7 @@ fun KabotMultiDBClientTest.testCharactersInventories(
         val qty = Random.nextInt(0, 100)
         val result = client.transaction(guildId) {
             characters.forEach { character ->
-                client.charactersScope.addItemToInventory(it, guildId, character.name, item, qty) shouldBe true
+                client.charactersScope.addItemToInventory(it, guildId, character.id, item, qty) shouldBe true
             }
             true
         }
@@ -119,7 +119,7 @@ fun KabotMultiDBClientTest.testCharactersInventories(
         }.committed shouldBe true
 
         characters.forEach {
-            client.charactersScope.getCharacter(guildId, it.name).let { c ->
+            client.charactersScope.getCharacter(guildId, it.id).let { c ->
                 c.inventory shouldNotContainKey item
             }
         }
