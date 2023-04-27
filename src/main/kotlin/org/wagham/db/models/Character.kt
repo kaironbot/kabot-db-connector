@@ -3,6 +3,7 @@ package org.wagham.db.models
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.bson.codecs.pojo.annotations.BsonId
 import org.wagham.db.enums.CharacterStatus
+import org.wagham.db.models.embed.AbilityScores
 import java.util.Date
 
 data class Character (
@@ -26,7 +27,9 @@ data class Character (
     val inventory: Map<String, Int> = mapOf(),
     val languages: List<String> = listOf(),
     val money: Float = 0f,
-    val proficiencies: List<String> = listOf()
+    val proficiencies: List<String> = listOf(),
+    val abilityScores: AbilityScores? = null,
+    val abilityScoresChoice: List<AbilityScores> = emptyList()
 ) {
 
     fun ms() = listOf(masterMS, pbcMS, errataMS, sessionMS).sum()
