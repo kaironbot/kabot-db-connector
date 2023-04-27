@@ -21,16 +21,6 @@ fun KabotMultiDBClientTest.testUtility(
     guildId: String
 ) {
 
-    "Should be able of getting the proficiencies in a Guild" {
-        client.utilityScope.getProficiencies(guildId).size shouldBeGreaterThan 0
-    }
-
-    "Should not be able of getting the proficiencies for a non-existent Guild" {
-        shouldThrow<InvalidGuildException> {
-            client.utilityScope.getProficiencies("I_DO_NOT_EXIST")
-        }
-    }
-
 /*    "Should be able of getting the announcements in a Guild" {
         client.utilityScope.getAnnouncements(guildId, "prizes").let {
             it.id shouldBe "prizes"

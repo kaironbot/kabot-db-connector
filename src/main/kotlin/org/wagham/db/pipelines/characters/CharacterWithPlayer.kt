@@ -13,7 +13,6 @@ import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.models.Building
 import org.wagham.db.models.Errata
 import org.wagham.db.models.Player
-import org.wagham.db.models.embed.AbilityScores
 import java.util.*
 
 data class CharacterWithPlayer (
@@ -37,9 +36,7 @@ data class CharacterWithPlayer (
     val inventory: Map<String, Int> = mapOf(),
     val languages: List<String> = listOf(),
     val money: Float = 0f,
-    val proficiencies: List<String> = listOf(),
-    val abilityScores: AbilityScores? = null,
-    val abilityScoresChoice: List<AbilityScores> = emptyList()
+    val proficiencies: List<String> = listOf()
 ) {
     companion object {
 
