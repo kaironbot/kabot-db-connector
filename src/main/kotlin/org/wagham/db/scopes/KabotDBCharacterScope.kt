@@ -40,6 +40,13 @@ class KabotDBCharacterScope(
             .findOne(session, Character::id eq characterId)
             ?: throw ResourceNotFoundException(characterId, "characters")
 
+    suspend fun updateCharacter(guildId: String, updatedCharacter: Character): Boolean =
+        getMainCollection(guildId)
+            .updateOne(
+                Character::id eq updatedCharacter.id,
+                updatedCharacter
+            ).modifiedCount == 1L
+
     fun getAllCharacters(guildId: String, status: CharacterStatus? = null) =
         getMainCollection(guildId)
             .find(Document(
