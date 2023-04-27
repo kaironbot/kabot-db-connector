@@ -4,6 +4,7 @@ import org.bson.codecs.pojo.annotations.BsonId
 import org.wagham.db.models.embed.AbilityCost
 
 data class ToolProficiency(
-    @BsonId override val name: String,
+    @BsonId override val id: String,
+    override val name: String,
     override val cost: AbilityCost? = null
 ) : Proficiency
