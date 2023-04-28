@@ -14,9 +14,9 @@ import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.exceptions.NoActiveCharacterException
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.exceptions.TransactionAbortedException
-import java.util.UUID
 import io.kotest.matchers.types.shouldBeInstanceOf
 import org.wagham.db.models.Building
+import org.wagham.db.models.embed.ProficiencyStub
 import org.wagham.db.uuid
 import kotlin.random.Random
 
@@ -128,7 +128,7 @@ fun KabotMultiDBClientTest.testCharacters(
 
     "All modifications should be preserved in a session but discarded if an exception is thrown" {
         val character = client.charactersScope.getAllCharacters(guildId).first { it.money > 0 }
-        val newProficiency = UUID.randomUUID().toString()
+        val newProficiency = ProficiencyStub(uuid(), uuid())
         val result = client.transaction(guildId) {
             client.charactersScope.addProficiencyToCharacter(it, guildId, character.id, newProficiency) shouldBe true
             client.charactersScope.getCharacter(it, guildId, character.id).proficiencies shouldContain newProficiency

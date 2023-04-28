@@ -13,6 +13,7 @@ import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.models.Building
 import org.wagham.db.models.Errata
 import org.wagham.db.models.Player
+import org.wagham.db.models.embed.ProficiencyStub
 import java.util.*
 
 data class CharacterWithPlayer (
@@ -34,9 +35,9 @@ data class CharacterWithPlayer (
     val reputation: Map<String, Int>,
     val buildings: Map<String, List<Building>> = mapOf(),
     val inventory: Map<String, Int> = mapOf(),
-    val languages: List<String> = listOf(),
+    val languages: Set<ProficiencyStub> = setOf(),
     val money: Float = 0f,
-    val proficiencies: List<String> = listOf()
+    val proficiencies: Set<ProficiencyStub> = setOf()
 ) {
     companion object {
 

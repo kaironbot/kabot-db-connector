@@ -6,5 +6,5 @@ data class ServerConfig(
     @BsonId val id: String = "",
     val adminRoleId: String? = null,
     val channels: Map<String, String> = emptyMap(),
-    val eventChannels: Map<String, List<String>> = emptyMap()
+    val eventChannels: Map<String, Set<String>> = emptyMap()
 )
