@@ -7,7 +7,6 @@ import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.AnnouncementBatch
 import org.wagham.db.models.ExpTable
 import org.wagham.db.models.PlayerBuildingsMessages
-import org.wagham.db.models.ProficiencyList
 import org.wagham.db.utils.isSuccessful
 
 class KabotDBUtilityScope(
@@ -19,18 +18,6 @@ class KabotDBUtilityScope(
            .getCollection<ExpTable>("utils")
            .findOne( ExpTable::utilType eq "msTable")
             ?: throw ResourceNotFoundException("ExpTable", "utils")
-
-    suspend fun getProficiencies(guildId: String) =
-        client.getGuildDb(guildId)
-            .getCollection<ProficiencyList>("utils")
-            .findOne(ProficiencyList::utilType eq "proficiencies")
-            ?.values ?: emptyList()
-
-    suspend fun getLanguages(guildId: String) =
-        client.getGuildDb(guildId)
-            .getCollection<ProficiencyList>("utils")
-            .findOne(ProficiencyList::utilType eq "languages")
-            ?.values ?: emptyList()
 
     suspend fun getAnnouncements(guildId: String, batchId: String) =
         client.getGuildDb(guildId)

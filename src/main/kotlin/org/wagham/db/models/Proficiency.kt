@@ -1,13 +1,9 @@
 package org.wagham.db.models
 
-import org.bson.codecs.pojo.annotations.BsonId
+import org.wagham.db.models.embed.AbilityCost
 
-data class Proficiency(
-    val name: String,
-    val isPurchasable: Boolean
-)
-
-data class ProficiencyList(
-    @BsonId val utilType: String,
-    val values: List<Proficiency> = emptyList()
-)
+interface Proficiency {
+    val id: String
+    val name: String
+    val cost: AbilityCost?
+}

@@ -1,5 +1,6 @@
 package org.wagham.db.scopes.characters
 
+import io.kotest.assertions.print.dataClassPrint
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
@@ -46,6 +47,24 @@ fun KabotMultiDBClientTest.testCharacters(
         activeCharacter.race shouldBe anActiveCharacter.race
         activeCharacter.territory shouldBe anActiveCharacter.territory
         activeCharacter.status shouldBe CharacterStatus.active
+    }
+
+    "Should be possible to update a character" {
+        val anActiveCharacter = client.charactersScope
+            .getAllCharacters(guildId)
+            .filter{ it.status == CharacterStatus.active}
+            .take(1000)
+            .toList()
+            .random()
+
+        val newRace = uuid()
+        client.charactersScope.updateCharacter(
+            guildId,
+            anActiveCharacter.copy(
+                race = newRace
+            )
+        )
+        client.charactersScope.getCharacter(guildId, anActiveCharacter.id).race shouldBe newRace
     }
 
     "ms function should be able to get the correct ms for a player" {
