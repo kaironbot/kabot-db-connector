@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.first
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
+import org.wagham.db.models.embed.ProficiencyStub
 import org.wagham.db.uuid
 
 fun KabotMultiDBClientTest.testCharactersProficiencies(
@@ -17,7 +18,7 @@ fun KabotMultiDBClientTest.testCharactersProficiencies(
         val character = client.charactersScope.getAllCharacters(guildId).first{
             it.name.startsWith(('A'..'Z').random().toString())
         }
-        val newProficiency = uuid()
+        val newProficiency = ProficiencyStub(uuid(), uuid())
         client.charactersScope.addProficiencyToCharacter(
             guildId,
             character.id,
@@ -39,7 +40,7 @@ fun KabotMultiDBClientTest.testCharactersProficiencies(
         val character = client.charactersScope.getAllCharacters(guildId).first{
             it.name.startsWith(('A'..'Z').random().toString())
         }
-        val newProficiency = uuid()
+        val newProficiency = ProficiencyStub(uuid(), uuid())
         client.charactersScope.addProficiencyToCharacter(
             guildId,
             character.id,
@@ -59,7 +60,7 @@ fun KabotMultiDBClientTest.testCharactersProficiencies(
         val character = client.charactersScope.getAllCharacters(guildId).first{
             it.name.startsWith(('A'..'Z').random().toString())
         }
-        val newProficiency = uuid()
+        val newProficiency = ProficiencyStub(uuid(), uuid())
         client.charactersScope.removeProficiencyFromCharacter(
             guildId,
             character.id,
@@ -73,7 +74,7 @@ fun KabotMultiDBClientTest.testCharactersProficiencies(
         val character = client.charactersScope.getAllCharacters(guildId).first{
             it.name.startsWith(('A'..'Z').random().toString())
         }
-        val newLanguage = uuid()
+        val newLanguage = ProficiencyStub(uuid(), uuid())
         client.transaction(guildId) {
             client.charactersScope.addLanguageToCharacter(
                 it,
@@ -103,7 +104,7 @@ fun KabotMultiDBClientTest.testCharactersProficiencies(
         val character = client.charactersScope.getAllCharacters(guildId).first{
             it.name.startsWith(('A'..'Z').random().toString())
         }
-        val newLanguage = uuid()
+        val newLanguage = ProficiencyStub(uuid(), uuid())
 
         client.transaction(guildId) {
             client.charactersScope.addLanguageToCharacter(
@@ -134,7 +135,7 @@ fun KabotMultiDBClientTest.testCharactersProficiencies(
         val character = client.charactersScope.getAllCharacters(guildId).first{
             it.name.startsWith(('A'..'Z').random().toString())
         }
-        val newLanguage = uuid()
+        val newLanguage = ProficiencyStub(uuid(), uuid())
         client.transaction(guildId) {
             client.charactersScope.removeLanguageFromCharacter(
                 it,

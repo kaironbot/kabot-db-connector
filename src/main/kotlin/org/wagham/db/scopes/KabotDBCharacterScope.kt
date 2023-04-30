@@ -13,6 +13,7 @@ import org.wagham.db.exceptions.NoActiveCharacterException
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.Building
 import org.wagham.db.models.Character
+import org.wagham.db.models.embed.ProficiencyStub
 import org.wagham.db.pipelines.characters.CharacterWithPlayer
 
 
@@ -56,14 +57,14 @@ class KabotDBCharacterScope(
             ))
             .toFlow()
 
-    suspend fun addProficiencyToCharacter(guildId: String, characterId: String, proficiency: String) =
+    suspend fun addProficiencyToCharacter(guildId: String, characterId: String, proficiency: ProficiencyStub) =
         getMainCollection(guildId)
             .updateOne(
                 Character::id eq characterId,
                 addToSet(Character::proficiencies, proficiency)
             ).modifiedCount == 1L
 
-    suspend fun addProficiencyToCharacter(session: ClientSession, guildId: String, characterId: String, proficiency: String) =
+    suspend fun addProficiencyToCharacter(session: ClientSession, guildId: String, characterId: String, proficiency: ProficiencyStub) =
         getMainCollection(guildId)
             .updateOne(
                 session,
@@ -71,7 +72,7 @@ class KabotDBCharacterScope(
                 addToSet(Character::proficiencies, proficiency)
             ).modifiedCount == 1L
 
-    suspend fun addLanguageToCharacter(session: ClientSession, guildId: String, characterId: String, language: String) =
+    suspend fun addLanguageToCharacter(session: ClientSession, guildId: String, characterId: String, language: ProficiencyStub) =
         getMainCollection(guildId)
             .updateOne(
                 session,
@@ -79,14 +80,14 @@ class KabotDBCharacterScope(
                 addToSet(Character::languages, language)
             ).modifiedCount == 1L
 
-    suspend fun removeProficiencyFromCharacter(guildId: String, characterId: String, proficiency: String) =
+    suspend fun removeProficiencyFromCharacter(guildId: String, characterId: String, proficiency: ProficiencyStub) =
         getMainCollection(guildId)
             .updateOne(
                 Character::id eq characterId,
                 pull(Character::proficiencies, proficiency),
             ).modifiedCount == 1L
 
-    suspend fun removeLanguageFromCharacter(session: ClientSession, guildId: String, characterId: String, language: String) =
+    suspend fun removeLanguageFromCharacter(session: ClientSession, guildId: String, characterId: String, language: ProficiencyStub) =
         getMainCollection(guildId)
             .updateOne(
                 session,

@@ -16,7 +16,7 @@ fun KabotMultiDBClientTest.testServerConfigs(
     val testChannelId = "868027091164229653"
     val testChannelIdKey = "TEST_CHANNEL_ID"
     val testCommand = "test_command"
-    val testChannels = listOf("1234")
+    val testChannels = setOf("1234")
 
     "Should be able to set a config and retrieve it" {
         client.serverConfigScope.setGuildConfig(
