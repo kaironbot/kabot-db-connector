@@ -22,7 +22,7 @@ data class Character (
     val created: Date?,
     val lastPlayed: Date?,
     val lastMastered: Date?,
-    val reputation: Map<String, Int>,
+    val reputation: Map<String, Int>?,
     val buildings: Map<String, List<Building>> = mapOf(),
     val inventory: Map<String, Int> = mapOf(),
     val languages: Set<ProficiencyStub> = setOf(),

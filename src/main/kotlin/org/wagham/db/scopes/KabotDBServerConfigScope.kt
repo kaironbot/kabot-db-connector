@@ -1,6 +1,5 @@
 package org.wagham.db.scopes
 
-import com.mongodb.internal.connection.Server
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
 import org.wagham.db.KabotMultiDBClient
@@ -24,8 +23,10 @@ class KabotDBServerConfigScope(
     suspend fun setGuildConfig(guildId: String, config: ServerConfig) =
         getMainCollection(guildId)
             .let {
-                it.findOneAndReplace(ServerConfig::id eq "serverConfig", config.copy(id = "serverConfig"))
-                    ?: it.insertOne(config.copy(id = "serverConfig"))
+                it.findOneAndReplace(
+                    ServerConfig::id eq "serverConfig",
+                    config.copy(id = "serverConfig")
+                ) ?: it.insertOne(config.copy(id = "serverConfig"))
             }
 
 }
