@@ -25,7 +25,7 @@ class KabotDBProficiencyScope(
 
     fun getToolProficiencies(guildId: String) =
         client.getGuildDb(guildId)
-            .getCollection<ToolProficiency>("tools")
+            .getCollection<ToolProficiency>("tool")
             .find(BsonDocument())
             .toFlow()
 
