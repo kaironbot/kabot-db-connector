@@ -7,6 +7,7 @@ import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.models.ServerConfig
+import org.wagham.db.models.embed.EventConfig
 
 fun KabotMultiDBClientTest.testServerConfigs(
     client: KabotMultiDBClient,
@@ -16,7 +17,7 @@ fun KabotMultiDBClientTest.testServerConfigs(
     val testChannelId = "868027091164229653"
     val testChannelIdKey = "TEST_CHANNEL_ID"
     val testCommand = "test_command"
-    val testChannels = setOf("1234")
+    val testChannels = EventConfig(true, setOf("1234"))
 
     "Should be able to set a config and retrieve it" {
         client.serverConfigScope.setGuildConfig(
@@ -31,8 +32,9 @@ fun KabotMultiDBClientTest.testServerConfigs(
                 it.channels shouldContainKey testChannelIdKey
                 it.channels[testChannelIdKey] shouldBe testChannelId
                 it.eventChannels shouldContainKey testCommand
-                it.eventChannels[testCommand]!!.size shouldBe 1
-                it.eventChannels[testCommand]!!.first() shouldBe "1234"
+                it.eventChannels[testCommand]!!.enabled shouldBe true
+                it.eventChannels[testCommand]!!.allowedChannels.size shouldBe 1
+                it.eventChannels[testCommand]!!.allowedChannels.first() shouldBe "1234"
             }
     }
 
