@@ -2,6 +2,7 @@ package org.wagham.db.scopes
 
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.wagham.db.KabotMultiDBClient
+import org.wagham.db.enums.CollectionNames
 import org.wagham.db.models.Background
 import org.wagham.db.models.Race
 
@@ -9,7 +10,7 @@ class KabotDBRaceScope(
     override val client: KabotMultiDBClient
 ) : KabotDBScope<Race> {
 
-    override val collectionName = "races"
+    override val collectionName = CollectionNames.RACES.stringValue
 
     override fun getMainCollection(guildId: String): CoroutineCollection<Race> =
         client.getGuildDb(guildId).getCollection(collectionName)

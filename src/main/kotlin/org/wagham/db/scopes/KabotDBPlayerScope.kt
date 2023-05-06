@@ -5,13 +5,14 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
 import org.litote.kmongo.push
 import org.wagham.db.KabotMultiDBClient
+import org.wagham.db.enums.CollectionNames
 import org.wagham.db.models.Player
 
 class KabotDBPlayerScope(
     override val client: KabotMultiDBClient
 ) : KabotDBScope<Player> {
 
-    override val collectionName = "players"
+    override val collectionName = CollectionNames.PLAYERS.stringValue
 
     override fun getMainCollection(guildId: String): CoroutineCollection<Player> =
         client.getGuildDb(guildId).getCollection(collectionName)

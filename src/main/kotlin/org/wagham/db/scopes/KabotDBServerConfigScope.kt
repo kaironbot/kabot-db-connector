@@ -3,6 +3,7 @@ package org.wagham.db.scopes
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
 import org.wagham.db.KabotMultiDBClient
+import org.wagham.db.enums.CollectionNames
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.ServerConfig
 
@@ -10,7 +11,7 @@ class KabotDBServerConfigScope(
     override val client: KabotMultiDBClient
 ) : KabotDBScope<ServerConfig> {
 
-    override val collectionName = "serverConfig"
+    override val collectionName = CollectionNames.SERVER_CONFIG.stringValue
 
     override fun getMainCollection(guildId: String): CoroutineCollection<ServerConfig> =
         client.getGuildDb(guildId).getCollection(collectionName)

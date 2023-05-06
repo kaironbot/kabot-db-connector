@@ -2,13 +2,14 @@ package org.wagham.db.scopes
 
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.wagham.db.KabotMultiDBClient
+import org.wagham.db.enums.CollectionNames
 import org.wagham.db.models.Bounty
 
 class KabotDBBountyScope(
     override val client: KabotMultiDBClient
 ) : KabotDBScope<Bounty> {
 
-    override val collectionName = "bounties"
+    override val collectionName = CollectionNames.BOUNTIES.stringValue
 
     override fun getMainCollection(guildId: String): CoroutineCollection<Bounty> =
         client.getGuildDb(guildId).getCollection(collectionName)

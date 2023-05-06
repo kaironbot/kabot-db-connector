@@ -5,6 +5,7 @@ import org.litote.kmongo.addToSet
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
 import org.wagham.db.KabotMultiDBClient
+import org.wagham.db.enums.CollectionNames
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.Flame
 import org.wagham.db.models.FlameCount
@@ -16,7 +17,7 @@ class KabotDBFlameScope(
     override val client: KabotMultiDBClient
 ) : KabotDBScope<Flame> {
 
-    override val collectionName = "flame"
+    override val collectionName = CollectionNames.FLAME.stringValue
 
     override fun getMainCollection(guildId: String): CoroutineCollection<Flame> =
         client.getGuildDb(guildId).getCollection(collectionName)

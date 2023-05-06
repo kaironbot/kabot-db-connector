@@ -2,13 +2,14 @@ package org.wagham.db.scopes
 
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.wagham.db.KabotMultiDBClient
+import org.wagham.db.enums.CollectionNames
 import org.wagham.db.models.Spell
 
 class KabotDBSpellScope(
     override val client: KabotMultiDBClient
 ) : KabotDBScope<Spell> {
 
-    override val collectionName = "spells"
+    override val collectionName = CollectionNames.SPELLS.stringValue
 
     override fun getMainCollection(guildId: String): CoroutineCollection<Spell> =
         client.getGuildDb(guildId).getCollection(collectionName)
