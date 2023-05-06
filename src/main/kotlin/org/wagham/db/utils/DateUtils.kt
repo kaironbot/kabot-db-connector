@@ -10,6 +10,7 @@ fun dateAtMidnight(date: Date): Date {
     calendar[Calendar.HOUR_OF_DAY] = 0
     calendar[Calendar.MINUTE] = 0
     calendar[Calendar.SECOND] = 0
+    calendar[Calendar.MILLISECOND] = 0
     return calendar.time
 }
 

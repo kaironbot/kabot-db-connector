@@ -9,6 +9,7 @@ import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CharacterStatus
+import org.wagham.db.enums.CollectionNames
 import org.wagham.db.exceptions.NoActiveCharacterException
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.Building
@@ -21,7 +22,7 @@ class KabotDBCharacterScope(
     override val client: KabotMultiDBClient
 ) : KabotDBScope<Character> {
 
-    override val collectionName = "characters"
+    override val collectionName = CollectionNames.CHARACTERS.stringValue
 
     override fun getMainCollection(guildId: String): CoroutineCollection<Character> =
         client.getGuildDb(guildId).getCollection(collectionName)

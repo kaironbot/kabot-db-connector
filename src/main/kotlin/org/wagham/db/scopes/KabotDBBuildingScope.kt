@@ -5,14 +5,15 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
 import org.litote.kmongo.or
 import org.wagham.db.KabotMultiDBClient
+import org.wagham.db.enums.CollectionNames
 import org.wagham.db.models.BuildingRecipe
-import org.wagham.db.pipelines.characters.BuildingWithBounty
+import org.wagham.db.pipelines.buildings.BuildingWithBounty
 
 class KabotDBBuildingScope(
     override val client: KabotMultiDBClient
 ) : KabotDBScope<BuildingRecipe> {
 
-    override val collectionName = "buildingtypes"
+    override val collectionName = CollectionNames.BUILDING_TYPES.stringValue
 
     override fun getMainCollection(guildId: String): CoroutineCollection<BuildingRecipe> =
         client.getGuildDb(guildId).getCollection(collectionName)

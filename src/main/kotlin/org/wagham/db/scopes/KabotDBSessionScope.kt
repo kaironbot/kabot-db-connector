@@ -6,6 +6,7 @@ import org.litote.kmongo.gte
 import org.litote.kmongo.lte
 import org.litote.kmongo.ne
 import org.wagham.db.KabotMultiDBClient
+import org.wagham.db.enums.CollectionNames
 import org.wagham.db.models.Session
 import org.wagham.db.pipelines.sessions.PlayerMasteredSessions
 import org.wagham.db.pipelines.sessions.TimePassedInGame
@@ -16,7 +17,7 @@ class KabotDBSessionScope(
     override val client: KabotMultiDBClient
 ) : KabotDBScope<Session> {
 
-    override val collectionName = "sessions"
+    override val collectionName = CollectionNames.SESSIONS.stringValue
 
     override fun getMainCollection(guildId: String): CoroutineCollection<Session> =
         client.getGuildDb(guildId).getCollection(collectionName)
