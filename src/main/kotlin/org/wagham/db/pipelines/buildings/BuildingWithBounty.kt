@@ -1,4 +1,4 @@
-package org.wagham.db.pipelines.characters
+package org.wagham.db.pipelines.buildings
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.mongodb.client.model.UnwindOptions

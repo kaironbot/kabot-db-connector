@@ -6,9 +6,12 @@ import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CollectionNames
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.AnnouncementBatch
+import org.wagham.db.models.AttendanceReport
 import org.wagham.db.models.ExpTable
 import org.wagham.db.models.PlayerBuildingsMessages
+import org.wagham.db.utils.dateAtMidnight
 import org.wagham.db.utils.isSuccessful
+import java.util.*
 
 class KabotDBUtilityScope(
     private val client: KabotMultiDBClient
@@ -49,4 +52,20 @@ class KabotDBUtilityScope(
                 message,
                 UpdateOptions().upsert(true)
             ).isSuccessful()
+
+    suspend fun updateAttendance(guildId: String, attendanceReport: AttendanceReport) =
+        client.getGuildDb(guildId)
+            .getCollection<AttendanceReport>(CollectionNames.ATTENDANCE.stringValue)
+            .updateOne(
+                AttendanceReport::date eq attendanceReport.date,
+                attendanceReport,
+                UpdateOptions().upsert(true)
+            ).isSuccessful()
+
+    suspend fun getTodayAttendance(guildId: String) =
+        client.getGuildDb(guildId)
+            .getCollection<AttendanceReport>(CollectionNames.ATTENDANCE.stringValue)
+            .findOne(
+                AttendanceReport::date eq dateAtMidnight(Calendar.getInstance().time)
+            ) ?: throw ResourceNotFoundException("Today's attendance", CollectionNames.ATTENDANCE.stringValue)
 }

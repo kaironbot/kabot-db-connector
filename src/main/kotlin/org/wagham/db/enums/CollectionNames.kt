@@ -2,6 +2,7 @@ package org.wagham.db.enums
 
 enum class CollectionNames(val stringValue: String) {
     ANNOUNCEMENTS("announcements"),
+    ATTENDANCE("attendance"),
     BACKGROUNDS("backgrounds"),
     BOUNTIES("bounties"),
     BUILDING_MESSAGES("building_messages"),

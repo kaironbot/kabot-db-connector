@@ -6,6 +6,7 @@ import org.wagham.db.scopes.*
 import org.wagham.db.scopes.characters.testCharacters
 import org.wagham.db.scopes.characters.testCharactersInventories
 import org.wagham.db.scopes.characters.testCharactersProficiencies
+import org.wagham.db.scopes.utility.testAttendance
 import org.wagham.db.scopes.utility.testExpTable
 import org.wagham.db.scopes.utility.testUtility
 import testBounties
@@ -25,6 +26,7 @@ class KabotMultiDBClientTest : StringSpec() {
     private val guildId = System.getenv("TEST_DB_ID")!!
 
     init {
+        testAttendance(client, guildId)
         testBackgrounds(client, guildId)
         testBounties(client, guildId)
         testBuildings(client, guildId)
@@ -36,6 +38,7 @@ class KabotMultiDBClientTest : StringSpec() {
         testFlame(client, guildId)
         testItems(client, guildId)
         testPlayers(client, guildId)
+        testProficiencies(client, guildId)
         testRaces(client, guildId)
         testServerConfigs(client, guildId)
         testSessions(client, guildId)
