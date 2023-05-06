@@ -7,6 +7,7 @@ import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.models.AttendanceReport
+import org.wagham.db.models.embed.AttendanceReportPlayer
 import org.wagham.db.utils.dateAtMidnight
 import org.wagham.db.uuid
 import java.util.*
@@ -23,7 +24,7 @@ fun KabotMultiDBClientTest.testAttendance(
             AttendanceReport(
                 dateAtMidnight(Calendar.getInstance().time),
                 uuid(),
-                mapOf(uuid() to Random.nextInt(0, 100))
+                mapOf(uuid() to AttendanceReportPlayer(Random.nextInt(0, 100), uuid()))
             )
         )
     }
@@ -38,7 +39,7 @@ fun KabotMultiDBClientTest.testAttendance(
         val attendance = AttendanceReport(
             dateAtMidnight(Calendar.getInstance().time),
             uuid(),
-            mapOf(uuid() to Random.nextInt(0, 100))
+            mapOf(uuid() to AttendanceReportPlayer(Random.nextInt(0, 100), uuid()))
         )
         client.utilityScope.updateAttendance(guildId, attendance) shouldBe true
         val retrievedAttendance = client.utilityScope.getTodayAttendance(guildId)
@@ -49,7 +50,7 @@ fun KabotMultiDBClientTest.testAttendance(
         val newPlayer = uuid()
         client.utilityScope.updateAttendance(
             guildId,
-            attendance.copy(players = attendance.players + (newPlayer to Random.nextInt(0, 1000)))
+            attendance.copy(players = attendance.players + (newPlayer to AttendanceReportPlayer(Random.nextInt(0, 100), uuid())))
         ) shouldBe true
 
         val updatedAttendance = client.utilityScope.getTodayAttendance(guildId)
