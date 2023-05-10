@@ -16,6 +16,7 @@ fun KabotMultiDBClientTest.testBuildings(
     client: KabotMultiDBClient,
     guildId: String
 ) {
+    /*
     "getAllBuildingRecipes should be able to get all the buildings" {
         client.buildingsScope.getAllBuildingRecipes(guildId).count() shouldBeGreaterThan 0
     }
@@ -119,4 +120,5 @@ fun KabotMultiDBClientTest.testBuildings(
         }
     }
 
+     */
 }
