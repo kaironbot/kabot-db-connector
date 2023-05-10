@@ -5,9 +5,10 @@ import org.bson.codecs.pojo.annotations.BsonId
 
 data class BuildingRecipe (
     @BsonId val name: String,
+    val type: String,
+    val tier: String,
     @JsonProperty("mo_cost") val moCost: Int,
-    @JsonProperty("tbadge_cost") val tbadgeCost: Int,
-    @JsonProperty("tbadge_type") val tbadgeType: String,
+    val materials: Map<String, Int> = emptyMap(),
     @JsonProperty("proficiency_reduction") val proficiencyReduction: String?,
     @JsonProperty("bounty_id") val bountyId: String,
     val size: String,
