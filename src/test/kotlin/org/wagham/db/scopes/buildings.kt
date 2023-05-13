@@ -5,18 +5,16 @@ import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.*
-import org.litote.kmongo.util.idValue
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.uuid
-import java.util.UUID
 
 fun KabotMultiDBClientTest.testBuildings(
     client: KabotMultiDBClient,
     guildId: String
 ) {
-    /*
+
     "getAllBuildingRecipes should be able to get all the buildings" {
         client.buildingsScope.getAllBuildingRecipes(guildId).count() shouldBeGreaterThan 0
     }
@@ -119,6 +117,4 @@ fun KabotMultiDBClientTest.testBuildings(
             client.buildingsScope.deleteBuildings(uuid(), listOf(uuid(), uuid()))
         }
     }
-
-     */
 }

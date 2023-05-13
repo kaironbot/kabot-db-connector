@@ -15,6 +15,7 @@ enum class CollectionNames(val stringValue: String) {
     LANGUAGES("languages"),
     PLAYERS("players"),
     RACES("races"),
+    SCHEDULED_EVENTS("scheduled_events"),
     SERVER_CONFIG("serverConfig"),
     SESSIONS("sessions"),
     SPELLS("spells"),

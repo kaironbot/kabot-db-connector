@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.StringSpec
 import org.wagham.db.models.MongoCredentials
 import org.wagham.db.scopes.*
 import org.wagham.db.scopes.characters.testCharacters
+import org.wagham.db.scopes.characters.testCharactersBuildings
 import org.wagham.db.scopes.characters.testCharactersInventories
 import org.wagham.db.scopes.characters.testCharactersProficiencies
 import org.wagham.db.scopes.utility.testAttendance
@@ -31,6 +32,7 @@ class KabotMultiDBClientTest : StringSpec() {
         testBounties(client, guildId)
         testBuildings(client, guildId)
         testCharacters(client, guildId)
+        testCharactersBuildings(client, guildId)
         testCharactersInventories(client, guildId)
         testCharactersProficiencies(client, guildId)
         testExpTable(client, guildId)
@@ -40,6 +42,7 @@ class KabotMultiDBClientTest : StringSpec() {
         testPlayers(client, guildId)
         testProficiencies(client, guildId)
         testRaces(client, guildId)
+        testScheduledEvents(client, guildId)
         testServerConfigs(client, guildId)
         testSessions(client, guildId)
         testSpells(client, guildId)

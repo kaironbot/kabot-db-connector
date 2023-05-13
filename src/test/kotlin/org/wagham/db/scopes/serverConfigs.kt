@@ -23,6 +23,7 @@ fun KabotMultiDBClientTest.testServerConfigs(
         client.serverConfigScope.setGuildConfig(
             guildId,
             ServerConfig(
+                id = "serverConfig",
                 channels = mapOf(testChannelIdKey to testChannelId),
                 eventChannels = mapOf(testCommand to testChannels)
             )
