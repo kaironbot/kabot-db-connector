@@ -10,6 +10,7 @@ data class BuildingRecipe (
     @JsonProperty("mo_cost") val moCost: Int,
     val materials: Map<String, Int> = emptyMap(),
     val upgradeId: String? = null,
+    val upgradeOnly: Boolean = false,
     @JsonProperty("proficiency_reduction") val proficiencyReduction: String?,
     @JsonProperty("bounty_id") val bountyId: String,
     val size: String,
