@@ -13,14 +13,17 @@ import org.wagham.db.models.Bounty
 
 data class BuildingWithBounty (
     @BsonId val name: String,
+    val type: String,
+    val tier: String,
     @JsonProperty("mo_cost") val moCost: Int,
-    @JsonProperty("tbadge_cost") val tbadgeCost: Int,
-    @JsonProperty("tbadge_type") val tbadgeType: String,
+    val materials: Map<String, Int> = emptyMap(),
+    val upgradeId: String,
     @JsonProperty("proficiency_reduction") val proficiencyReduction: String?,
-    val bounty: Bounty,
+    @JsonProperty("bounty_id") val bountyId: String,
     val size: String,
     val areas: List<String> = listOf(),
-    @JsonProperty("desc_size") val maxDescriptionSize: Int = 300
+    @JsonProperty("desc_size") val maxDescriptionSize: Int = 300,
+    val bounty: Bounty,
 ) {
     companion object {
 
