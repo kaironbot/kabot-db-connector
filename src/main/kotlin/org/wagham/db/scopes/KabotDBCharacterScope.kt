@@ -4,7 +4,6 @@ import com.mongodb.client.model.Updates
 import com.mongodb.reactivestreams.client.ClientSession
 import org.bson.BsonDocument
 import org.bson.Document
-import org.intellij.lang.annotations.Language
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.wagham.db.KabotMultiDBClient
@@ -159,7 +158,7 @@ class KabotDBCharacterScope(
                 ).modifiedCount == 1L
         }
 
-    suspend fun addBuilding(session: ClientSession, guildId: String, characterId: String, building: Building, buildingType: String) =
+    suspend fun addBuilding(session: ClientSession, guildId: String, characterId: String, building: Building, newType: String) =
         client.getGuildDb(guildId).let {
             val c = getCharacter(session, guildId, characterId)
             it.getCollection<Character>(collectionName)
@@ -168,7 +167,21 @@ class KabotDBCharacterScope(
                     Character::id eq characterId,
                     c.copy(
                         buildings = c.buildings +
-                            (buildingType to (c.buildings[buildingType] ?: emptyList()) + building)
+                            (newType to (c.buildings[newType] ?: emptyList()) + building)
+                    )
+                ).modifiedCount == 1L
+        }
+
+    suspend fun removeBuilding(session: ClientSession, guildId: String, characterId: String, buildingId: String, type: String) =
+        client.getGuildDb(guildId).let {
+            val c = getCharacter(session, guildId, characterId)
+            it.getCollection<Character>(collectionName)
+                .updateOne(
+                    session,
+                    Character::id eq characterId,
+                    c.copy(
+                        buildings = c.buildings +
+                            (type to  (c.buildings[type] ?: emptyList()).filter { b -> b.name != buildingId })
                     )
                 ).modifiedCount == 1L
         }

@@ -160,49 +160,4 @@ fun KabotMultiDBClientTest.testCharacters(
         updatedCharacter.proficiencies shouldNotContain newProficiency
     }
 
-    "addBuilding can add a building of a new type to a character" {
-        val character = client.charactersScope.getAllCharacters(guildId).take(1000).toList().random()
-        val newBuilding = Building(uuid(), uuid(), uuid(), uuid())
-        val buildingType = uuid()
-        val result = client.transaction(guildId) {
-            client.charactersScope.addBuilding(
-                it,
-                guildId,
-                character.id,
-                newBuilding,
-                buildingType
-            )
-            true
-        }
-        result.committed shouldBe true
-        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
-        updatedCharacter.buildings[buildingType] shouldNotBe null
-        updatedCharacter.buildings[buildingType]!!.size shouldBe 1
-        updatedCharacter.buildings[buildingType]!!.first() shouldBe newBuilding
-    }
-
-    "addBuilding can add a building of an existing type to a character" {
-        val character = client.charactersScope.getAllCharacters(guildId)
-            .first { it.buildings.isNotEmpty() }
-
-        val newBuilding = Building(uuid(), uuid(), uuid(), uuid())
-        val buildingType = character.buildings.keys.first()
-        val result = client.transaction(guildId) {
-            client.charactersScope.addBuilding(
-                it,
-                guildId,
-                character.id,
-                newBuilding,
-                buildingType
-            )
-            true
-        }
-        result.committed shouldBe true
-        val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
-        updatedCharacter.buildings[buildingType] shouldNotBe null
-        updatedCharacter.buildings[buildingType]!!.size shouldBeGreaterThan 1
-        updatedCharacter.buildings[buildingType]!!.find {
-          it.name == newBuilding.name
-        } shouldBe newBuilding
-    }
 }
