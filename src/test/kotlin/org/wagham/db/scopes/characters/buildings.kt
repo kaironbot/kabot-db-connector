@@ -18,6 +18,7 @@ fun KabotMultiDBClientTest.testCharactersBuildings(
 
     "addBuilding can add a building of a new type to a character" {
         val buildingType = client.buildingsScope.getAllBuildingRecipes(guildId).toList().random()
+        val bId = "${buildingType.name}:${buildingType.type}:${buildingType.tier}"
         val character = client.charactersScope.getAllCharacters(guildId).take(1000).toList().random()
         val newBuilding = Building(uuid(), uuid(), uuid(), uuid())
         val result = client.transaction(guildId) {
@@ -26,19 +27,20 @@ fun KabotMultiDBClientTest.testCharactersBuildings(
                 guildId,
                 character.id,
                 newBuilding,
-                buildingType.name
+                buildingType
             )
             true
         }
         result.committed shouldBe true
         val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
-        updatedCharacter.buildings[buildingType.name] shouldNotBe null
-        updatedCharacter.buildings[buildingType.name]!!.size shouldBe 1
-        updatedCharacter.buildings[buildingType.name]!!.first() shouldBe newBuilding
+        updatedCharacter.buildings[bId] shouldNotBe null
+        updatedCharacter.buildings[bId]!!.size shouldBe 1
+        updatedCharacter.buildings[bId]!!.first() shouldBe newBuilding
     }
 
     "addBuilding can add a building of an existing type to a character" {
         val buildingType = client.buildingsScope.getAllBuildingRecipes(guildId).toList().random()
+        val bId = "${buildingType.name}:${buildingType.type}:${buildingType.tier}"
         val character = client.charactersScope.getAllCharacters(guildId).take(1000).toList().random()
 
         val oldBuilding = Building(uuid(), uuid(), uuid(), uuid())
@@ -48,7 +50,7 @@ fun KabotMultiDBClientTest.testCharactersBuildings(
                 guildId,
                 character.id,
                 oldBuilding,
-                buildingType.name
+                buildingType
             )
         }.committed shouldBe true
         val newBuilding = Building(uuid(), uuid(), uuid(), uuid())
@@ -58,20 +60,21 @@ fun KabotMultiDBClientTest.testCharactersBuildings(
                 guildId,
                 character.id,
                 newBuilding,
-                buildingType.name
+                buildingType
             )
         }
         result.committed shouldBe true
         val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
-        updatedCharacter.buildings[buildingType.name] shouldNotBe null
-        updatedCharacter.buildings[buildingType.name]!!.size shouldBeGreaterThan 1
-        updatedCharacter.buildings[buildingType.name]!!.find {
+        updatedCharacter.buildings[bId] shouldNotBe null
+        updatedCharacter.buildings[bId]!!.size shouldBeGreaterThan 1
+        updatedCharacter.buildings[bId]!!.find {
             it.name == newBuilding.name
         } shouldBe newBuilding
     }
 
     "Can remove a building from a player" {
         val buildingType = client.buildingsScope.getAllBuildingRecipes(guildId).toList().random()
+        val bId = "${buildingType.name}:${buildingType.type}:${buildingType.tier}"
         val character = client.charactersScope.getAllCharacters(guildId).take(1000).toList().random()
 
         val oldBuilding = Building(uuid(), uuid(), uuid(), uuid())
@@ -81,7 +84,7 @@ fun KabotMultiDBClientTest.testCharactersBuildings(
                 guildId,
                 character.id,
                 oldBuilding,
-                buildingType.name
+                buildingType
             )
         }.committed shouldBe true
 
@@ -91,11 +94,11 @@ fun KabotMultiDBClientTest.testCharactersBuildings(
                 guildId,
                 character.id,
                 oldBuilding.name,
-                buildingType.name
+                buildingType
             )
         }
         result.committed shouldBe true
         val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
-        updatedCharacter.buildings[buildingType.name]?.firstOrNull { it.name == oldBuilding.name } shouldBe null
+        updatedCharacter.buildings[bId]?.firstOrNull { it.name == oldBuilding.name } shouldBe null
     }
 }
