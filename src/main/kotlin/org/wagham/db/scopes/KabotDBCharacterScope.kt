@@ -11,8 +11,8 @@ import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.enums.CollectionNames
 import org.wagham.db.exceptions.NoActiveCharacterException
 import org.wagham.db.exceptions.ResourceNotFoundException
+import org.wagham.db.models.BaseBuilding
 import org.wagham.db.models.Building
-import org.wagham.db.models.BuildingRecipe
 import org.wagham.db.models.Character
 import org.wagham.db.models.embed.ProficiencyStub
 import org.wagham.db.pipelines.characters.CharacterWithPlayer
@@ -159,7 +159,7 @@ class KabotDBCharacterScope(
                 ).modifiedCount == 1L
         }
 
-    suspend fun addBuilding(session: ClientSession, guildId: String, characterId: String, building: Building, type: BuildingRecipe) =
+    suspend fun addBuilding(session: ClientSession, guildId: String, characterId: String, building: Building, type: BaseBuilding) =
         client.getGuildDb(guildId).let {
             val c = getCharacter(session, guildId, characterId)
             val bId = "${type.name}:${type.type}:${type.tier}"
@@ -174,7 +174,7 @@ class KabotDBCharacterScope(
                 ).modifiedCount == 1L
         }
 
-    suspend fun removeBuilding(session: ClientSession, guildId: String, characterId: String, buildingId: String, type: BuildingRecipe) =
+    suspend fun removeBuilding(session: ClientSession, guildId: String, characterId: String, buildingId: String, type: BaseBuilding) =
         client.getGuildDb(guildId).let {
             val c = getCharacter(session, guildId, characterId)
             val bId = "${type.name}:${type.type}:${type.tier}"
