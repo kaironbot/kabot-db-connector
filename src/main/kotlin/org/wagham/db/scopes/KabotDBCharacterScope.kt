@@ -12,6 +12,7 @@ import org.wagham.db.enums.CollectionNames
 import org.wagham.db.exceptions.NoActiveCharacterException
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.Building
+import org.wagham.db.models.BuildingRecipe
 import org.wagham.db.models.Character
 import org.wagham.db.models.embed.ProficiencyStub
 import org.wagham.db.pipelines.characters.CharacterWithPlayer
@@ -158,30 +159,32 @@ class KabotDBCharacterScope(
                 ).modifiedCount == 1L
         }
 
-    suspend fun addBuilding(session: ClientSession, guildId: String, characterId: String, building: Building, newType: String) =
+    suspend fun addBuilding(session: ClientSession, guildId: String, characterId: String, building: Building, type: BuildingRecipe) =
         client.getGuildDb(guildId).let {
             val c = getCharacter(session, guildId, characterId)
+            val bId = "${type.name}:${type.type}:${type.tier}"
             it.getCollection<Character>(collectionName)
                 .updateOne(
                     session,
                     Character::id eq characterId,
                     c.copy(
                         buildings = c.buildings +
-                            (newType to (c.buildings[newType] ?: emptyList()) + building)
+                            (bId to (c.buildings[bId] ?: emptyList()) + building)
                     )
                 ).modifiedCount == 1L
         }
 
-    suspend fun removeBuilding(session: ClientSession, guildId: String, characterId: String, buildingId: String, type: String) =
+    suspend fun removeBuilding(session: ClientSession, guildId: String, characterId: String, buildingId: String, type: BuildingRecipe) =
         client.getGuildDb(guildId).let {
             val c = getCharacter(session, guildId, characterId)
+            val bId = "${type.name}:${type.type}:${type.tier}"
             it.getCollection<Character>(collectionName)
                 .updateOne(
                     session,
                     Character::id eq characterId,
                     c.copy(
                         buildings = c.buildings +
-                            (type to  (c.buildings[type] ?: emptyList()).filter { b -> b.name != buildingId })
+                            (bId to (c.buildings[bId] ?: emptyList()).filter { b -> b.name != buildingId })
                     )
                 ).modifiedCount == 1L
         }
