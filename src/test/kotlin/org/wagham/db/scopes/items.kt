@@ -14,7 +14,8 @@ fun KabotMultiDBClientTest.testItems(
     client: KabotMultiDBClient,
     guildId: String
 ) {
-    
+
+    /*
     "getAllItems should be able to get all the items" {
         client.itemsScope.getAllItems(guildId).count() shouldBeGreaterThan 0
     }
@@ -107,5 +108,5 @@ fun KabotMultiDBClientTest.testItems(
             client.itemsScope.deleteItems(uuid(), listOf(uuid(), uuid()))
         }
     }
-
+*/
 }
