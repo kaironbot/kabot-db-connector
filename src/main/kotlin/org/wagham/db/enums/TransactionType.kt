@@ -1,3 +1,3 @@
 package org.wagham.db.enums
 
-enum class TransactionType { GIVE, TAKE, ASSIGN }
+enum class TransactionType { GIVE, RECEIVE }
