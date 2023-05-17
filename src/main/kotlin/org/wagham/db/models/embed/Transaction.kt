@@ -5,7 +5,7 @@ import java.util.Date
 
 data class Transaction (
     val date: Date,
-    val from: String,
+    val target: String,
     val type: TransactionType,
     val args: Map<String, Float> = emptyMap()
 )
