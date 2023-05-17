@@ -55,8 +55,7 @@ class KabotDBCharacterScope(
                 status?.let {
                     mapOf("status" to status)
                 } ?: emptyMap<String, String>()
-            ))
-            .toFlow()
+            )).toFlow()
 
     suspend fun addProficiencyToCharacter(guildId: String, characterId: String, proficiency: ProficiencyStub) =
         getMainCollection(guildId)

@@ -27,6 +27,7 @@ class KabotMultiDBClient(
     val featsScope = KabotDBFeatScope(this)
     val flameScope = KabotDBFlameScope(this)
     val charactersScope = KabotDBCharacterScope(this)
+    val characterTransactionsScope = KabotDBCharacterTransactionsScope(this)
     val itemsScope = KabotDBItemScope(this)
     val playersScope = KabotDBPlayerScope(this)
     val proficiencyScope = KabotDBProficiencyScope(this)

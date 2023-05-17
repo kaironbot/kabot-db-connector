@@ -8,6 +8,7 @@ enum class CollectionNames(val stringValue: String) {
     BUILDING_MESSAGES("building_messages"),
     BUILDING_TYPES("buildingtypes"),
     CHARACTERS("characters"),
+    CHARACTER_TRANSACTIONS("character_transactions"),
     CLASSES("classes"),
     FEATS("feats"),
     FLAME("flame"),
