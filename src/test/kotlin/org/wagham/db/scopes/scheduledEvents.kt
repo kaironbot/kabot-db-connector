@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.toList
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
+import org.wagham.db.enums.ScheduledEventState
 import org.wagham.db.enums.ScheduledEventType
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.models.ScheduledEvent
@@ -30,6 +31,7 @@ fun KabotMultiDBClientTest.testScheduledEvents(
             ScheduledEventType.GIVE_ITEM,
             Date(System.currentTimeMillis()),
             Date(System.currentTimeMillis()),
+            ScheduledEventState.SCHEDULED,
             args = emptyMap()
         )
         client.scheduledEventsScope.addScheduledEvent(guildId, newEvent) shouldBe true
