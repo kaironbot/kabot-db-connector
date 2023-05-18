@@ -17,8 +17,9 @@ fun KabotMultiDBClientTest.testCharacterTransactions(
         val characterId = uuid()
         val transaction = Transaction(
             date = Date(),
-            target = uuid(),
-            type = TransactionType.RECEIVE
+            otherParty = uuid(),
+            operation = uuid(),
+            type = TransactionType.ADD
         )
         client.transaction(guildId) {
             client.characterTransactionsScope.addTransactionForCharacter(
