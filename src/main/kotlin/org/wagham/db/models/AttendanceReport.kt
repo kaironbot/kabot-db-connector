@@ -7,5 +7,6 @@ import java.util.Date
 data class AttendanceReport(
     @BsonId val date: Date,
     val message: String,
-    val players: Map<String, AttendanceReportPlayer> = emptyMap()
+    val players: Map<String, AttendanceReportPlayer> = emptyMap(),
+    val afternoonPlayers: Map<String, AttendanceReportPlayer> = emptyMap()
 )
