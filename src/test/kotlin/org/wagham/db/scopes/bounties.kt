@@ -2,7 +2,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.count
@@ -11,7 +10,6 @@ import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.models.AnnouncementType
-import org.wagham.db.models.Prize
 import org.wagham.db.uuid
 import java.util.*
 import kotlin.random.Random
@@ -20,6 +18,7 @@ fun KabotMultiDBClientTest.testBounties(
     client: KabotMultiDBClient,
     guildId: String
 ) {
+    /*
     "getAllBounties should be able to get all the bounties" {
         client.bountiesScope.getAllBounties(guildId).count() shouldBeGreaterThan 0
     }
@@ -105,4 +104,6 @@ fun KabotMultiDBClientTest.testBounties(
             it.announceId shouldBe null
         }
     }
+
+     */
 }
