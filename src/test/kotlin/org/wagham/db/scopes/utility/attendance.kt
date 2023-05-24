@@ -31,7 +31,7 @@ fun KabotMultiDBClientTest.testAttendance(
 
     "Should not be able of getting the daily attendance from a non-existing guild" {
         shouldThrow<InvalidGuildException> {
-            client.utilityScope.getTodayAttendance(uuid())
+            client.utilityScope.getLastAttendance(uuid())
         }
     }
 
@@ -42,7 +42,7 @@ fun KabotMultiDBClientTest.testAttendance(
             mapOf(uuid() to AttendanceReportPlayer(Random.nextInt(0, 100), uuid()))
         )
         client.utilityScope.updateAttendance(guildId, attendance) shouldBe true
-        val retrievedAttendance = client.utilityScope.getTodayAttendance(guildId)
+        val retrievedAttendance = client.utilityScope.getLastAttendance(guildId)
         retrievedAttendance.date shouldBe attendance.date
         retrievedAttendance.message shouldBe attendance.message
         retrievedAttendance.players.size shouldBe 1
@@ -53,7 +53,7 @@ fun KabotMultiDBClientTest.testAttendance(
             attendance.copy(players = attendance.players + (newPlayer to AttendanceReportPlayer(Random.nextInt(0, 100), uuid())))
         ) shouldBe true
 
-        val updatedAttendance = client.utilityScope.getTodayAttendance(guildId)
+        val updatedAttendance = client.utilityScope.getLastAttendance(guildId)
         updatedAttendance.date shouldBe attendance.date
         updatedAttendance.message shouldBe attendance.message
         updatedAttendance.players.keys shouldContain newPlayer

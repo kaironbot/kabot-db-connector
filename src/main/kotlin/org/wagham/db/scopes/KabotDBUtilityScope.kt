@@ -1,6 +1,7 @@
 package org.wagham.db.scopes
 
 import com.mongodb.client.model.UpdateOptions
+import org.bson.BsonDocument
 import org.litote.kmongo.eq
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CollectionNames
@@ -62,10 +63,10 @@ class KabotDBUtilityScope(
                 UpdateOptions().upsert(true)
             ).isSuccessful()
 
-    suspend fun getTodayAttendance(guildId: String) =
+    suspend fun getLastAttendance(guildId: String) =
         client.getGuildDb(guildId)
             .getCollection<AttendanceReport>(CollectionNames.ATTENDANCE.stringValue)
-            .findOne(
-                AttendanceReport::date eq dateAtMidnight(Calendar.getInstance().time)
-            ) ?: throw ResourceNotFoundException("Today's attendance", CollectionNames.ATTENDANCE.stringValue)
+            .find()
+            .descendingSort(AttendanceReport::date)
+            .first() ?: throw ResourceNotFoundException("Today's attendance", CollectionNames.ATTENDANCE.stringValue)
 }
