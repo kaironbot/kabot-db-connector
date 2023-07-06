@@ -7,6 +7,6 @@ data class Errata (
     val ms: Int = 0,
     val description: String = "",
     val date: Date,
-    val reputationAdjustment: Map<String, String>,
-    val statusChange: CharacterStatus?
+    val reputationAdjustment: Map<String, String> = emptyMap(),
+    val statusChange: CharacterStatus? = null
 )

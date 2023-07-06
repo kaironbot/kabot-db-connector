@@ -1,11 +1,11 @@
 package org.wagham.db.scopes.characters
 
-import io.kotest.assertions.print.dataClassPrint
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.floats.shouldBeGreaterThan
 import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.*
@@ -16,7 +16,7 @@ import org.wagham.db.exceptions.NoActiveCharacterException
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.exceptions.TransactionAbortedException
 import io.kotest.matchers.types.shouldBeInstanceOf
-import org.wagham.db.models.Building
+import org.wagham.db.models.creation.CharacterCreationData
 import org.wagham.db.models.embed.ProficiencyStub
 import org.wagham.db.uuid
 import kotlin.random.Random
@@ -158,6 +158,62 @@ fun KabotMultiDBClientTest.testCharacters(
         result.exception?.message shouldBe "I do not like it"
         val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
         updatedCharacter.proficiencies shouldNotContain newProficiency
+    }
+
+    "Should be able to create a Character for an existing player" {
+        val player = client.playersScope.getAllPlayers(guildId).take(1000).toList().random()
+        val data = CharacterCreationData(
+            name = uuid(),
+            startingLevel = "1",
+            race = uuid(),
+            characterClass = uuid(),
+            null,
+            null
+        )
+       client.charactersScope.createCharacter(
+            guildId,
+            player.playerId,
+            player.name,
+            data
+        ).committed shouldBe true
+
+        val character = client.charactersScope.getCharacter(guildId, "${player.playerId}:${data.name}")
+        val expTable = client.utilityScope.getExpTable(guildId)
+        character.name shouldBe data.name
+        character.race shouldBe data.race
+        character.characterClass shouldBe data.characterClass
+        character.territory shouldBe null
+        character.ms() shouldBe expTable.levelToExp(data.startingLevel)
+    }
+
+    "Should be able to create a Character for a non-existing player" {
+        val playerId = uuid()
+        val playerName = uuid()
+        val data = CharacterCreationData(
+            name = uuid(),
+            startingLevel = "${Random.nextInt(2, 10)}",
+            race = uuid(),
+            characterClass = uuid(),
+            null,
+            null
+        )
+        client.charactersScope.createCharacter(
+            guildId,
+            playerId,
+            playerName,
+            data
+        ).committed shouldBe true
+
+        val player = client.playersScope.getPlayer(guildId, playerId).shouldNotBeNull()
+        player.name shouldBe playerName
+
+        val character = client.charactersScope.getCharacter(guildId, "${player.playerId}:${data.name}")
+        val expTable = client.utilityScope.getExpTable(guildId)
+        character.name shouldBe data.name
+        character.race shouldBe data.race
+        character.characterClass shouldBe data.characterClass
+        character.territory shouldBe null
+        character.ms() shouldBe expTable.levelToExp(data.startingLevel)
     }
 
 }

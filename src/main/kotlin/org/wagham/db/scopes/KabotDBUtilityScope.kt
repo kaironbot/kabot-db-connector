@@ -24,6 +24,12 @@ class KabotDBUtilityScope(
            .findOne( ExpTable::utilType eq "msTable")
             ?: throw ResourceNotFoundException("ExpTable", "utils")
 
+    suspend fun getPlayableResources(guildId: String) =
+        client.getGuildDb(guildId)
+            .getCollection<ExpTable>(CollectionNames.UTILS.stringValue)
+            .findOne( ExpTable::utilType eq "playableResources")
+            ?: throw ResourceNotFoundException("Playable Resources", "utils")
+
     suspend fun getAnnouncements(guildId: String, batchId: String) =
         client.getGuildDb(guildId)
             .getCollection<AnnouncementBatch>(CollectionNames.ANNOUNCEMENTS.stringValue)
