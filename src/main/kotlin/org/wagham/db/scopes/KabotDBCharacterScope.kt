@@ -1,5 +1,6 @@
 package org.wagham.db.scopes
 
+import com.mongodb.client.model.InsertOneOptions
 import com.mongodb.client.model.Updates
 import com.mongodb.reactivestreams.client.ClientSession
 import org.bson.BsonDocument
@@ -14,8 +15,11 @@ import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.BaseBuilding
 import org.wagham.db.models.Building
 import org.wagham.db.models.Character
+import org.wagham.db.models.Errata
+import org.wagham.db.models.creation.CharacterCreationData
 import org.wagham.db.models.embed.ProficiencyStub
 import org.wagham.db.pipelines.characters.CharacterWithPlayer
+import java.util.*
 
 
 class KabotDBCharacterScope(
@@ -192,5 +196,35 @@ class KabotDBCharacterScope(
         getMainCollection(guildId)
             .aggregate<CharacterWithPlayer>(CharacterWithPlayer.getPipeline(status))
             .toFlow()
+
+    suspend fun createCharacter(guildId: String, playerId: String, playerName: String, data: CharacterCreationData) =
+        client.transaction(guildId) { session ->
+            val playerExistsOrIsCreated = client.playersScope.getPlayer(session, guildId, playerId) ?:
+                client.playersScope.createPlayer(session, guildId, playerId, playerName)
+            val startingExp = client.utilityScope.getExpTable(guildId).levelToExp(data.startingLevel)
+            getMainCollection(guildId).insertOne(
+                session,
+                Character(
+                    id = "$playerId:${data.name}",
+                    name = data.name,
+                    player = playerId,
+                    race = data.race,
+                    territory = data.territory,
+                    characterClass = data.characterClass,
+                    age = data.age,
+                    created = Date(),
+                    errataMS = startingExp,
+                    errata = listOf(
+                        Errata(
+                            ms = startingExp,
+                            description = "Starts from level ${data.startingLevel}",
+                            date = Date()
+                        )
+                    )
+                )
+            )
+            getCharacter(session, guildId, "$playerId:${data.name}")
+            playerExistsOrIsCreated != null
+        }
 
 }

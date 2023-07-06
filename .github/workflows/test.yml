@@ -26,4 +26,4 @@ jobs:
           DB_TEST_USER: ${{ secrets.DB_TEST_USER }}
           TEST_DB: ${{ secrets.TEST_DB }}
           TEST_DB_ID: ${{ secrets.TEST_DB_ID }}
-        run: gradle kotest
+        run: gradle test

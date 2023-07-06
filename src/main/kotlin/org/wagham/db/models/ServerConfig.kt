@@ -11,4 +11,11 @@ data class ServerConfig(
     val eventChannels: Map<String, EventConfig> = emptyMap(),
     val commandsPermissions: Map<String, Set<String>> = emptyMap(),
     val buildingRestrictions: Map<BuildingRestrictionType, Int?> = emptyMap(),
-)
+    val playerConfigurations: Map<PlayerConfigurations, Boolean> = emptyMap()
+) {
+    companion object {
+        enum class PlayerConfigurations {
+            CHARACTER_CREATION_STRICT_CHECK
+        }
+    }
+}
