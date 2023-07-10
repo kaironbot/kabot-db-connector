@@ -6,10 +6,7 @@ import org.litote.kmongo.eq
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CollectionNames
 import org.wagham.db.exceptions.ResourceNotFoundException
-import org.wagham.db.models.AnnouncementBatch
-import org.wagham.db.models.AttendanceReport
-import org.wagham.db.models.ExpTable
-import org.wagham.db.models.PlayerBuildingsMessages
+import org.wagham.db.models.*
 import org.wagham.db.utils.dateAtMidnight
 import org.wagham.db.utils.isSuccessful
 import java.util.*
@@ -26,8 +23,8 @@ class KabotDBUtilityScope(
 
     suspend fun getPlayableResources(guildId: String) =
         client.getGuildDb(guildId)
-            .getCollection<ExpTable>(CollectionNames.UTILS.stringValue)
-            .findOne( ExpTable::utilType eq "playableResources")
+            .getCollection<PlayableResources>(CollectionNames.UTILS.stringValue)
+            .findOne( PlayableResources::docId eq "playableResources")
             ?: throw ResourceNotFoundException("Playable Resources", "utils")
 
     suspend fun getAnnouncements(guildId: String, batchId: String) =
