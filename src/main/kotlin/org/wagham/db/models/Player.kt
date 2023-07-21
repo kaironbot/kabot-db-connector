@@ -7,6 +7,5 @@ data class Player(
     @BsonId val playerId: String,
     val name: String,
     val dateJoined: Date?,
-    val activeCharacter: String? = null,
-    val linkedPlayers: Set<String> = emptySet()
+    val activeCharacter: String? = null
 )

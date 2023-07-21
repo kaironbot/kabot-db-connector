@@ -3,7 +3,6 @@ package org.wagham.db.scopes
 import com.mongodb.reactivestreams.client.ClientSession
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
-import org.litote.kmongo.push
 import org.litote.kmongo.set
 import org.litote.kmongo.setTo
 import org.wagham.db.KabotMultiDBClient
@@ -44,21 +43,6 @@ class KabotDBPlayerScope(
             )
         return getPlayer(session, guildId, playerId)
     }
-
-    suspend fun connectPlayers(session: ClientSession, guildId: String, firstPlayerId: String, secondPlayerId: String) =
-        getMainCollection(guildId).let {
-            val firstUpdate = it.updateOne(
-                session,
-                Player::playerId eq firstPlayerId,
-                push(Player::linkedPlayers, secondPlayerId)
-            ).modifiedCount == 1L
-            val secondUpdate = it.updateOne(
-                session,
-                Player::playerId eq secondPlayerId,
-                push(Player::linkedPlayers, firstPlayerId)
-            ).modifiedCount == 1L
-            firstUpdate && secondUpdate
-        }
 
     suspend fun setActiveCharacter(guildId: String, playerId: String, characterId: String): Boolean {
         val character = client.getGuildDb(guildId).getCollection<Character>(CollectionNames.CHARACTERS.stringValue)
