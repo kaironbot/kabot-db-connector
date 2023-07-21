@@ -79,7 +79,7 @@ fun KabotMultiDBClientTest.testCharacters(
     }
 
     "getActiveCharacter should not be able to get data for a non existing player" {
-        client.charactersScope.getActiveCharacters(guildId, "I_DO_NOT_EXIST", false).count() shouldBe 0
+        client.charactersScope.getActiveCharacters(guildId, "I_DO_NOT_EXIST").count() shouldBe 0
     }
 
     "getCharactersWithPlayer should be able to get data for all the characters if no parameter is passed" {
@@ -219,7 +219,7 @@ fun KabotMultiDBClientTest.testCharacters(
         client.transaction(guildId) {
             client.playersScope.createPlayer(it, guildId, playerId, playerId) != null
         }.committed shouldBe true
-        client.charactersScope.getActiveCharacters(guildId, playerId, false).count() shouldBe 0
+        client.charactersScope.getActiveCharacters(guildId, playerId).count() shouldBe 0
     }
 
     "getActiveCharacter should be able to return all the active characters for a player if no active is specified" {
