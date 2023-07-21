@@ -37,9 +37,9 @@ fun KabotMultiDBClientTest.testCharacters(
     }
 
     "getActiveCharacter should be able to get the active character for a player" {
-        val anActiveCharacter = client.charactersScope.getAllCharacters(guildId).firstOrNull{ it.status == CharacterStatus.active}
-        anActiveCharacter shouldNotBe null
-        val activeCharacter = client.charactersScope.getActiveCharacters(guildId, anActiveCharacter!!.player, false).first()
+        val anActiveCharacter = client.charactersScope.getAllCharacters(guildId).firstOrNull{ it.status == CharacterStatus.active}.shouldNotBeNull()
+        val activeCharacter = client.charactersScope.getActiveCharacterOrAllActive(guildId, anActiveCharacter.player)
+            .currentActive.shouldNotBeNull()
         activeCharacter shouldNotBe null
         activeCharacter.name shouldBe anActiveCharacter.name
         activeCharacter.player shouldBe anActiveCharacter.player
@@ -78,7 +78,7 @@ fun KabotMultiDBClientTest.testCharacters(
     }
 
     "getActiveCharacter should not be able to get data for a non existing player" {
-        client.charactersScope.getActiveCharacters(guildId, "I_DO_NOT_EXIST", false).count() shouldBe 0
+        client.charactersScope.getActiveCharacters(guildId, "I_DO_NOT_EXIST").count() shouldBe 0
     }
 
     "getCharactersWithPlayer should be able to get data for all the characters if no parameter is passed" {
@@ -158,7 +158,11 @@ fun KabotMultiDBClientTest.testCharacters(
     }
 
     "Should be able to create a Character for an existing player" {
-        val player = client.playersScope.getAllPlayers(guildId).take(1000).toList().random()
+        val playerId = uuid()
+        client.transaction(guildId) {
+            client.playersScope.createPlayer(it, guildId, playerId, playerId) != null
+        }.committed shouldBe true
+        val player = client.playersScope.getPlayer(guildId, playerId).shouldNotBeNull()
         val data = CharacterCreationData(
             name = uuid(),
             startingLevel = "1",
@@ -218,7 +222,7 @@ fun KabotMultiDBClientTest.testCharacters(
         client.transaction(guildId) {
             client.playersScope.createPlayer(it, guildId, playerId, playerId) != null
         }.committed shouldBe true
-        client.charactersScope.getActiveCharacters(guildId, playerId, false).count() shouldBe 0
+        client.charactersScope.getActiveCharacters(guildId, playerId).count() shouldBe 0
     }
 
     "getActiveCharacter should be able to return all the active characters for a player if no active is specified" {
@@ -243,7 +247,11 @@ fun KabotMultiDBClientTest.testCharacters(
             ).committed shouldBe true
         }
 
-        client.charactersScope.getActiveCharacters(guildId, playerId, false).map { character ->
+        client.charactersScope.getActiveCharacterOrAllActive(guildId, playerId).let {
+            it.currentActive shouldBe null
+            it.allActive.size shouldBeGreaterThan 0
+            it.allActive
+        }.map { character ->
             characters.first { it.name == character.name }.let {
                 character.race shouldBe it.race
                 character.characterClass shouldBe it.characterClass
@@ -277,21 +285,15 @@ fun KabotMultiDBClientTest.testCharacters(
         val activeCharacter = characters.first()
         client.playersScope.setActiveCharacter(guildId, playerId, "$playerId:${activeCharacter.name}") shouldBe true
 
-        client.charactersScope.getActiveCharacters(guildId, playerId, false).map { character ->
+        client.charactersScope.getActiveCharacterOrAllActive(guildId, playerId).let {
+            it.allActive.size shouldBe 0
+            it.currentActive.shouldNotBeNull()
+        }.let { character ->
             character.race shouldBe activeCharacter.race
             character.characterClass shouldBe activeCharacter.characterClass
             character.age shouldBe null
             character.territory shouldBe null
-        }.count() shouldBe 1
-
-        client.charactersScope.getActiveCharacters(guildId, playerId, true).map { character ->
-            characters.first { it.name == character.name }.let {
-                character.race shouldBe it.race
-                character.characterClass shouldBe it.characterClass
-                character.age shouldBe null
-                character.territory shouldBe null
-            }
-        }.count() shouldBe size
+        }
     }
 
 }
