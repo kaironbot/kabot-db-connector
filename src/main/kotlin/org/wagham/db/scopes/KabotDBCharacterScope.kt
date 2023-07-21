@@ -16,6 +16,7 @@ import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.*
 import org.wagham.db.models.creation.CharacterCreationData
 import org.wagham.db.models.embed.ProficiencyStub
+import org.wagham.db.models.responses.ActiveCharacterOrAllActive
 import org.wagham.db.pipelines.characters.CharacterWithPlayer
 import java.util.*
 
@@ -29,18 +30,29 @@ class KabotDBCharacterScope(
     override fun getMainCollection(guildId: String): CoroutineCollection<Character> =
         client.getGuildDb(guildId).getCollection(collectionName)
 
-    suspend fun getActiveCharacters(guildId: String, playerId: String, bypassDefault: Boolean): Flow<Character> =
+    suspend fun getActiveCharacterOrAllActive(guildId: String, playerId: String): ActiveCharacterOrAllActive =
         client.getGuildDb(guildId).getCollection<Player>(CollectionNames.PLAYERS.stringValue)
             .findOne(Player::playerId eq playerId).let { player ->
-                if( player?.activeCharacter != null && !bypassDefault) {
+                if(player?.activeCharacter != null) {
                     getMainCollection(guildId).findOne(
                         Character::id eq player.activeCharacter
-                    )?.let { flowOf(it) } ?: emptyFlow()
-                } else getMainCollection(guildId).find(
-                    Character::status eq CharacterStatus.active,
-                    Character::player eq playerId
-                ).toFlow()
+                    )?.let {
+                        ActiveCharacterOrAllActive(currentActive = it)
+                    }
+                } else null
+            } ?: getMainCollection(guildId).find(
+                Character::status eq CharacterStatus.active,
+                Character::player eq playerId
+            ).toList().let {
+                if(it.size == 1) ActiveCharacterOrAllActive(currentActive = it.first())
+                else ActiveCharacterOrAllActive(allActive = it)
             }
+
+    fun getActiveCharacters(guildId: String, playerId: String): Flow<Character> =
+        getMainCollection(guildId).find(
+            Character::status eq CharacterStatus.active,
+            Character::player eq playerId
+        ).toFlow()
 
     suspend fun getCharacter(guildId: String, characterId: String): Character =
         getMainCollection(guildId)
