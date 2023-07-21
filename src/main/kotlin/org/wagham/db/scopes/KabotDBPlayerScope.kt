@@ -4,8 +4,13 @@ import com.mongodb.reactivestreams.client.ClientSession
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
 import org.litote.kmongo.push
+import org.litote.kmongo.set
+import org.litote.kmongo.setTo
 import org.wagham.db.KabotMultiDBClient
+import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.enums.CollectionNames
+import org.wagham.db.exceptions.ResourceNotFoundException
+import org.wagham.db.models.Character
 import org.wagham.db.models.Player
 import java.util.*
 
@@ -54,5 +59,20 @@ class KabotDBPlayerScope(
             ).modifiedCount == 1L
             firstUpdate && secondUpdate
         }
+
+    suspend fun setActiveCharacter(guildId: String, playerId: String, characterId: String): Boolean {
+        val character = client.getGuildDb(guildId).getCollection<Character>(CollectionNames.CHARACTERS.stringValue)
+            .findOne(
+                Character::id eq characterId
+            ) ?: throw ResourceNotFoundException(characterId, CollectionNames.CHARACTERS.stringValue)
+        if(character.status != CharacterStatus.active)
+            throw IllegalStateException("Character is not active")
+        if(character.player != playerId)
+            throw IllegalStateException("Character belongs to ${character.player} not to $playerId")
+        return getMainCollection(guildId).updateOne(
+            Player::playerId eq playerId,
+            set(Player::activeCharacter setTo characterId)
+        ).modifiedCount == 1L
+    }
 
 }

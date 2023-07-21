@@ -1,6 +1,8 @@
 package org.wagham.db.models
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.wagham.db.enums.CharacterStatus
+import org.wagham.db.utils.JacksonLenientCharacterStateDeserializer
 import java.util.*
 
 data class Errata (
@@ -8,5 +10,5 @@ data class Errata (
     val description: String = "",
     val date: Date,
     val reputationAdjustment: Map<String, String> = emptyMap(),
-    val statusChange: CharacterStatus? = null
+    @JsonDeserialize(using = JacksonLenientCharacterStateDeserializer::class) val statusChange: CharacterStatus? = null
 )

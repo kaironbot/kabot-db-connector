@@ -1,10 +1,11 @@
 package org.wagham.db.models
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import io.kotest.assertions.eq.eq
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.bson.codecs.pojo.annotations.BsonId
 import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.models.embed.ProficiencyStub
+import org.wagham.db.utils.JacksonLenientCharacterStateDeserializer
 import java.util.Date
 
 data class Character (
@@ -14,7 +15,7 @@ data class Character (
     val race: String?,
     val territory: String?,
     @JsonProperty("class") val characterClass: String?,
-    val status: CharacterStatus = CharacterStatus.active,
+    @JsonDeserialize(using = JacksonLenientCharacterStateDeserializer::class) val status: CharacterStatus = CharacterStatus.active,
     val masterMS: Int = 0,
     @JsonProperty("PBCMS") val pbcMS: Int = 0,
     val errataMS: Int = 0,

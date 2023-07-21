@@ -9,7 +9,6 @@ import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.uuid
-import java.util.UUID
 
 fun KabotMultiDBClientTest.testBackgrounds(
     client: KabotMultiDBClient,

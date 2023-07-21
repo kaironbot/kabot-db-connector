@@ -100,7 +100,17 @@ fun KabotMultiDBClientTest.testUtility(
         (pm1 == pm3) shouldBe false
         (pm1 == pm4) shouldBe false
         (pm1 == pm5) shouldBe false
-
     }
 
+    "Should be able of getting the playable resources" {
+        val resources = client.utilityScope.getPlayableResources(guildId)
+        resources.classes.size shouldBeGreaterThan 0
+        resources.races.size shouldBeGreaterThan 0
+    }
+
+    "Cannot get playable resources from a non-existent guild" {
+        shouldThrow<InvalidGuildException> {
+            client.utilityScope.getPlayableResources(uuid())
+        }
+    }
 }

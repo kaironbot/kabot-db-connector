@@ -40,7 +40,7 @@ fun KabotMultiDBClientTest.testCharacters(
     "getActiveCharacter should be able to get the active character for a player" {
         val anActiveCharacter = client.charactersScope.getAllCharacters(guildId).firstOrNull{ it.status == CharacterStatus.active}
         anActiveCharacter shouldNotBe null
-        val activeCharacter = client.charactersScope.getActiveCharacter(guildId, anActiveCharacter!!.player)
+        val activeCharacter = client.charactersScope.getActiveCharacters(guildId, anActiveCharacter!!.player).first()
         activeCharacter shouldNotBe null
         activeCharacter.name shouldBe anActiveCharacter.name
         activeCharacter.player shouldBe anActiveCharacter.player
@@ -79,9 +79,7 @@ fun KabotMultiDBClientTest.testCharacters(
     }
 
     "getActiveCharacter should not be able to get data for a non existing player" {
-        shouldThrow<NoActiveCharacterException> {
-            client.charactersScope.getActiveCharacter(guildId, "I_DO_NOT_EXIST")
-        }
+        client.charactersScope.getActiveCharacters(guildId, "I_DO_NOT_EXIST").count() shouldBe 0
     }
 
     "getCharactersWithPlayer should be able to get data for all the characters if no parameter is passed" {
@@ -214,6 +212,78 @@ fun KabotMultiDBClientTest.testCharacters(
         character.characterClass shouldBe data.characterClass
         character.territory shouldBe null
         character.ms() shouldBe expTable.levelToExp(data.startingLevel)
+    }
+
+    "getActiveCharacter should return an empty flow if the player has no active character" {
+        val playerId = uuid()
+        client.transaction(guildId) {
+            client.playersScope.createPlayer(it, guildId, playerId, playerId) != null
+        }.committed shouldBe true
+        client.charactersScope.getActiveCharacters(guildId, playerId).count() shouldBe 0
+    }
+
+    "getActiveCharacter should be able to return all the active characters for a player if no active is specified" {
+        val playerId = uuid()
+        val playerName = uuid()
+        val size = 3
+        val characters = List(size) {
+            CharacterCreationData(
+                name = uuid(),
+                startingLevel = "${Random.nextInt(2, 10)}",
+                race = uuid(),
+                characterClass = uuid(),
+                null,
+                null
+            )
+        }.onEach { data ->
+            client.charactersScope.createCharacter(
+                guildId,
+                playerId,
+                playerName,
+                data
+            ).committed shouldBe true
+        }
+
+        client.charactersScope.getActiveCharacters(guildId, playerId).map { character ->
+            characters.first { it.name == character.name }.let {
+                character.race shouldBe it.race
+                character.characterClass shouldBe it.characterClass
+                character.age shouldBe null
+                character.territory shouldBe null
+            }
+        }.count() shouldBe size
+    }
+
+    "getActiveCharacter should return the active characters if specified on the player" {
+        val playerId = uuid()
+        val playerName = uuid()
+        val size = 3
+        val characters = List(size) {
+            CharacterCreationData(
+                name = uuid(),
+                startingLevel = "${Random.nextInt(2, 10)}",
+                race = uuid(),
+                characterClass = uuid(),
+                null,
+                null
+            )
+        }.onEach { data ->
+            client.charactersScope.createCharacter(
+                guildId,
+                playerId,
+                playerName,
+                data
+            ).committed shouldBe true
+        }
+        val activeCharacter = characters.first()
+        client.playersScope.setActiveCharacter(guildId, playerId, "$playerId:${activeCharacter.name}") shouldBe true
+
+        client.charactersScope.getActiveCharacters(guildId, playerId).map { character ->
+            character.race shouldBe activeCharacter.race
+            character.characterClass shouldBe activeCharacter.characterClass
+            character.age shouldBe null
+            character.territory shouldBe null
+        }.count() shouldBe 1
     }
 
 }

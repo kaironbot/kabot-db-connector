@@ -1,8 +1,10 @@
 package org.wagham.db.scopes
 
-import com.mongodb.client.model.InsertOneOptions
 import com.mongodb.client.model.Updates
 import com.mongodb.reactivestreams.client.ClientSession
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import org.bson.BsonDocument
 import org.bson.Document
 import org.litote.kmongo.*
@@ -10,12 +12,8 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.enums.CollectionNames
-import org.wagham.db.exceptions.NoActiveCharacterException
 import org.wagham.db.exceptions.ResourceNotFoundException
-import org.wagham.db.models.BaseBuilding
-import org.wagham.db.models.Building
-import org.wagham.db.models.Character
-import org.wagham.db.models.Errata
+import org.wagham.db.models.*
 import org.wagham.db.models.creation.CharacterCreationData
 import org.wagham.db.models.embed.ProficiencyStub
 import org.wagham.db.pipelines.characters.CharacterWithPlayer
@@ -31,10 +29,18 @@ class KabotDBCharacterScope(
     override fun getMainCollection(guildId: String): CoroutineCollection<Character> =
         client.getGuildDb(guildId).getCollection(collectionName)
 
-    suspend fun getActiveCharacter(guildId: String, playerId: String): Character =
-        getMainCollection(guildId)
-            .findOne(Character::status eq CharacterStatus.active, Character::player eq playerId)
-            ?: throw NoActiveCharacterException(playerId)
+    suspend fun getActiveCharacters(guildId: String, playerId: String): Flow<Character> =
+        client.getGuildDb(guildId).getCollection<Player>(CollectionNames.PLAYERS.stringValue)
+            .findOne(Player::playerId eq playerId).let { player ->
+                if( player?.activeCharacter != null) {
+                    getMainCollection(guildId).findOne(
+                        Character::id eq player.activeCharacter
+                    )?.let { flowOf(it) } ?: emptyFlow()
+                } else getMainCollection(guildId).find(
+                    Character::status eq CharacterStatus.active,
+                    Character::player eq playerId
+                ).toFlow()
+            }
 
     suspend fun getCharacter(guildId: String, characterId: String): Character =
         getMainCollection(guildId)
@@ -226,5 +232,4 @@ class KabotDBCharacterScope(
             getCharacter(session, guildId, "$playerId:${data.name}")
             playerExistsOrIsCreated != null
         }
-
 }
