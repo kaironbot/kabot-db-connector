@@ -10,7 +10,6 @@ import org.wagham.db.scopes.characters.testCharactersProficiencies
 import org.wagham.db.scopes.utility.testAttendance
 import org.wagham.db.scopes.utility.testExpTable
 import org.wagham.db.scopes.utility.testUtility
-import testBounties
 
 class KabotMultiDBClientTest : StringSpec() {
 

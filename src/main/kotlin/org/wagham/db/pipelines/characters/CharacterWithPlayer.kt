@@ -1,6 +1,7 @@
 package org.wagham.db.pipelines.characters
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.mongodb.client.model.UnwindOptions
 import org.bson.Document
 import org.bson.codecs.pojo.annotations.BsonId
@@ -14,6 +15,7 @@ import org.wagham.db.models.Building
 import org.wagham.db.models.Errata
 import org.wagham.db.models.Player
 import org.wagham.db.models.embed.ProficiencyStub
+import org.wagham.db.utils.JacksonLenientCharacterStateDeserializer
 import java.util.*
 
 data class CharacterWithPlayer (
@@ -23,7 +25,7 @@ data class CharacterWithPlayer (
     val race: String?,
     val territory: String?,
     @JsonProperty("class") val characterClass: String?,
-    val status: CharacterStatus,
+    @JsonDeserialize(using = JacksonLenientCharacterStateDeserializer::class) val status: CharacterStatus,
     val masterMS: Int,
     @JsonProperty("PBCMS") val pbcMS: Int,
     val errataMS: Int,

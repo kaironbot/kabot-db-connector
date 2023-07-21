@@ -4,6 +4,5 @@ enum class CharacterStatus {
     active,
     dead,
     npc,
-    retired,
-    traitor
+    retired
 }

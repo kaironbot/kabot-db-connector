@@ -1,7 +1,6 @@
 package org.wagham.db.scopes
 
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo
 import io.kotest.matchers.comparables.shouldBeLessThanOrEqualTo
 import io.kotest.matchers.ints.shouldBeGreaterThan
@@ -12,7 +11,6 @@ import org.wagham.db.KabotMultiDBClientTest
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.utils.dateAtMidnight
 import org.wagham.db.utils.daysInBetween
-import java.time.DayOfWeek
 import java.util.*
 
 fun KabotMultiDBClientTest.testSessions(
