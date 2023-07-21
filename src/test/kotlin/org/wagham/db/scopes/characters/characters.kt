@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.*
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
 import org.wagham.db.enums.CharacterStatus
-import org.wagham.db.exceptions.NoActiveCharacterException
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.exceptions.TransactionAbortedException
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -40,7 +39,7 @@ fun KabotMultiDBClientTest.testCharacters(
     "getActiveCharacter should be able to get the active character for a player" {
         val anActiveCharacter = client.charactersScope.getAllCharacters(guildId).firstOrNull{ it.status == CharacterStatus.active}
         anActiveCharacter shouldNotBe null
-        val activeCharacter = client.charactersScope.getActiveCharacters(guildId, anActiveCharacter!!.player).first()
+        val activeCharacter = client.charactersScope.getActiveCharacters(guildId, anActiveCharacter!!.player, false).first()
         activeCharacter shouldNotBe null
         activeCharacter.name shouldBe anActiveCharacter.name
         activeCharacter.player shouldBe anActiveCharacter.player
@@ -79,7 +78,7 @@ fun KabotMultiDBClientTest.testCharacters(
     }
 
     "getActiveCharacter should not be able to get data for a non existing player" {
-        client.charactersScope.getActiveCharacters(guildId, "I_DO_NOT_EXIST").count() shouldBe 0
+        client.charactersScope.getActiveCharacters(guildId, "I_DO_NOT_EXIST", false).count() shouldBe 0
     }
 
     "getCharactersWithPlayer should be able to get data for all the characters if no parameter is passed" {
@@ -219,7 +218,7 @@ fun KabotMultiDBClientTest.testCharacters(
         client.transaction(guildId) {
             client.playersScope.createPlayer(it, guildId, playerId, playerId) != null
         }.committed shouldBe true
-        client.charactersScope.getActiveCharacters(guildId, playerId).count() shouldBe 0
+        client.charactersScope.getActiveCharacters(guildId, playerId, false).count() shouldBe 0
     }
 
     "getActiveCharacter should be able to return all the active characters for a player if no active is specified" {
@@ -244,7 +243,7 @@ fun KabotMultiDBClientTest.testCharacters(
             ).committed shouldBe true
         }
 
-        client.charactersScope.getActiveCharacters(guildId, playerId).map { character ->
+        client.charactersScope.getActiveCharacters(guildId, playerId, false).map { character ->
             characters.first { it.name == character.name }.let {
                 character.race shouldBe it.race
                 character.characterClass shouldBe it.characterClass
@@ -278,12 +277,21 @@ fun KabotMultiDBClientTest.testCharacters(
         val activeCharacter = characters.first()
         client.playersScope.setActiveCharacter(guildId, playerId, "$playerId:${activeCharacter.name}") shouldBe true
 
-        client.charactersScope.getActiveCharacters(guildId, playerId).map { character ->
+        client.charactersScope.getActiveCharacters(guildId, playerId, false).map { character ->
             character.race shouldBe activeCharacter.race
             character.characterClass shouldBe activeCharacter.characterClass
             character.age shouldBe null
             character.territory shouldBe null
         }.count() shouldBe 1
+
+        client.charactersScope.getActiveCharacters(guildId, playerId, true).map { character ->
+            characters.first { it.name == character.name }.let {
+                character.race shouldBe it.race
+                character.characterClass shouldBe it.characterClass
+                character.age shouldBe null
+                character.territory shouldBe null
+            }
+        }.count() shouldBe size
     }
 
 }

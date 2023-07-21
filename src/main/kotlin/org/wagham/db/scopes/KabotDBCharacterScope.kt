@@ -29,10 +29,10 @@ class KabotDBCharacterScope(
     override fun getMainCollection(guildId: String): CoroutineCollection<Character> =
         client.getGuildDb(guildId).getCollection(collectionName)
 
-    suspend fun getActiveCharacters(guildId: String, playerId: String): Flow<Character> =
+    suspend fun getActiveCharacters(guildId: String, playerId: String, bypassDefault: Boolean): Flow<Character> =
         client.getGuildDb(guildId).getCollection<Player>(CollectionNames.PLAYERS.stringValue)
             .findOne(Player::playerId eq playerId).let { player ->
-                if( player?.activeCharacter != null) {
+                if( player?.activeCharacter != null && !bypassDefault) {
                     getMainCollection(guildId).findOne(
                         Character::id eq player.activeCharacter
                     )?.let { flowOf(it) } ?: emptyFlow()
