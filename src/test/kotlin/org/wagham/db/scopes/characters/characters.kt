@@ -37,9 +37,8 @@ fun KabotMultiDBClientTest.testCharacters(
     }
 
     "getActiveCharacter should be able to get the active character for a player" {
-        val anActiveCharacter = client.charactersScope.getAllCharacters(guildId).firstOrNull{ it.status == CharacterStatus.active}
-        anActiveCharacter shouldNotBe null
-        val activeCharacter = client.charactersScope.getActiveCharacterOrAllActive(guildId, anActiveCharacter!!.player, false)
+        val anActiveCharacter = client.charactersScope.getAllCharacters(guildId).firstOrNull{ it.status == CharacterStatus.active}.shouldNotBeNull()
+        val activeCharacter = client.charactersScope.getActiveCharacterOrAllActive(guildId, anActiveCharacter.player)
             .currentActive.shouldNotBeNull()
         activeCharacter shouldNotBe null
         activeCharacter.name shouldBe anActiveCharacter.name
@@ -159,7 +158,11 @@ fun KabotMultiDBClientTest.testCharacters(
     }
 
     "Should be able to create a Character for an existing player" {
-        val player = client.playersScope.getAllPlayers(guildId).take(1000).toList().random()
+        val playerId = uuid()
+        client.transaction(guildId) {
+            client.playersScope.createPlayer(it, guildId, playerId, playerId) != null
+        }.committed shouldBe true
+        val player = client.playersScope.getPlayer(guildId, playerId).shouldNotBeNull()
         val data = CharacterCreationData(
             name = uuid(),
             startingLevel = "1",
@@ -244,7 +247,7 @@ fun KabotMultiDBClientTest.testCharacters(
             ).committed shouldBe true
         }
 
-        client.charactersScope.getActiveCharacterOrAllActive(guildId, playerId, false).let {
+        client.charactersScope.getActiveCharacterOrAllActive(guildId, playerId).let {
             it.currentActive shouldBe null
             it.allActive.size shouldBeGreaterThan 0
             it.allActive
@@ -282,7 +285,7 @@ fun KabotMultiDBClientTest.testCharacters(
         val activeCharacter = characters.first()
         client.playersScope.setActiveCharacter(guildId, playerId, "$playerId:${activeCharacter.name}") shouldBe true
 
-        client.charactersScope.getActiveCharacterOrAllActive(guildId, playerId, false).let {
+        client.charactersScope.getActiveCharacterOrAllActive(guildId, playerId).let {
             it.allActive.size shouldBe 0
             it.currentActive.shouldNotBeNull()
         }.let { character ->

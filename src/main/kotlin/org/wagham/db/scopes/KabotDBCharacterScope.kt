@@ -30,10 +30,10 @@ class KabotDBCharacterScope(
     override fun getMainCollection(guildId: String): CoroutineCollection<Character> =
         client.getGuildDb(guildId).getCollection(collectionName)
 
-    suspend fun getActiveCharacterOrAllActive(guildId: String, playerId: String, bypassDefault: Boolean): ActiveCharacterOrAllActive =
+    suspend fun getActiveCharacterOrAllActive(guildId: String, playerId: String): ActiveCharacterOrAllActive =
         client.getGuildDb(guildId).getCollection<Player>(CollectionNames.PLAYERS.stringValue)
             .findOne(Player::playerId eq playerId).let { player ->
-                if(player?.activeCharacter != null && !bypassDefault) {
+                if(player?.activeCharacter != null) {
                     getMainCollection(guildId).findOne(
                         Character::id eq player.activeCharacter
                     )?.let {
