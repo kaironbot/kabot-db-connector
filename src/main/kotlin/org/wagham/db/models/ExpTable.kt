@@ -2,10 +2,11 @@ package org.wagham.db.models
 
 import org.bson.codecs.pojo.annotations.BsonId
 import org.wagham.db.utils.findPrevious
+import java.util.*
 
 data class ExpTable (
     @BsonId val utilType: String,
-    val table: Map<Int, String>,
+    val table: SortedMap<Int, String>,
     val tier: Map<Int, String> = emptyMap()
 ) {
 
