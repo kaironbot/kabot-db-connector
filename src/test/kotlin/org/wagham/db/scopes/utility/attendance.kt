@@ -24,7 +24,9 @@ fun KabotMultiDBClientTest.testAttendance(
             AttendanceReport(
                 dateAtMidnight(Calendar.getInstance().time),
                 uuid(),
-                mapOf(uuid() to AttendanceReportPlayer(Random.nextInt(0, 100), listOf(uuid())))
+                mapOf(
+                    uuid() to listOf(AttendanceReportPlayer(Random.nextInt(0, 100), uuid(), uuid()))
+                )
             )
         )
     }
@@ -39,7 +41,9 @@ fun KabotMultiDBClientTest.testAttendance(
         val attendance = AttendanceReport(
             dateAtMidnight(Calendar.getInstance().time),
             uuid(),
-            mapOf(uuid() to AttendanceReportPlayer(Random.nextInt(0, 100), listOf(uuid())))
+            mapOf(
+                uuid() to listOf(AttendanceReportPlayer(Random.nextInt(0, 100), uuid(), uuid()))
+            )
         )
         client.utilityScope.updateAttendance(guildId, attendance) shouldBe true
         val retrievedAttendance = client.utilityScope.getLastAttendance(guildId)
@@ -50,7 +54,9 @@ fun KabotMultiDBClientTest.testAttendance(
         val newPlayer = uuid()
         client.utilityScope.updateAttendance(
             guildId,
-            attendance.copy(players = attendance.players + (newPlayer to AttendanceReportPlayer(Random.nextInt(0, 100), listOf(uuid()))))
+            attendance.copy(players = attendance.players +
+                    (newPlayer to listOf(AttendanceReportPlayer(Random.nextInt(0, 100), uuid(), uuid())))
+            )
         ) shouldBe true
 
         val updatedAttendance = client.utilityScope.getLastAttendance(guildId)
