@@ -2,6 +2,7 @@ package org.wagham.db.scopes.utility
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
@@ -24,7 +25,9 @@ fun KabotMultiDBClientTest.testAttendance(
             AttendanceReport(
                 dateAtMidnight(Calendar.getInstance().time),
                 uuid(),
-                mapOf(uuid() to AttendanceReportPlayer(Random.nextInt(0, 100), listOf(uuid())))
+                mapOf(
+                    uuid() to listOf(AttendanceReportPlayer(Random.nextInt(0, 100), uuid(), uuid()))
+                )
             )
         )
     }
@@ -39,10 +42,12 @@ fun KabotMultiDBClientTest.testAttendance(
         val attendance = AttendanceReport(
             dateAtMidnight(Calendar.getInstance().time),
             uuid(),
-            mapOf(uuid() to AttendanceReportPlayer(Random.nextInt(0, 100), listOf(uuid())))
+            mapOf(
+                uuid() to listOf(AttendanceReportPlayer(Random.nextInt(0, 100), uuid(), uuid()))
+            )
         )
         client.utilityScope.updateAttendance(guildId, attendance) shouldBe true
-        val retrievedAttendance = client.utilityScope.getLastAttendance(guildId)
+        val retrievedAttendance = client.utilityScope.getLastAttendance(guildId).shouldNotBeNull()
         retrievedAttendance.date shouldBe attendance.date
         retrievedAttendance.message shouldBe attendance.message
         retrievedAttendance.players.size shouldBe 1
@@ -50,10 +55,12 @@ fun KabotMultiDBClientTest.testAttendance(
         val newPlayer = uuid()
         client.utilityScope.updateAttendance(
             guildId,
-            attendance.copy(players = attendance.players + (newPlayer to AttendanceReportPlayer(Random.nextInt(0, 100), listOf(uuid()))))
+            attendance.copy(players = attendance.players +
+                    (newPlayer to listOf(AttendanceReportPlayer(Random.nextInt(0, 100), uuid(), uuid())))
+            )
         ) shouldBe true
 
-        val updatedAttendance = client.utilityScope.getLastAttendance(guildId)
+        val updatedAttendance = client.utilityScope.getLastAttendance(guildId).shouldNotBeNull()
         updatedAttendance.date shouldBe attendance.date
         updatedAttendance.message shouldBe attendance.message
         updatedAttendance.players.keys shouldContain newPlayer

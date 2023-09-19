@@ -71,5 +71,5 @@ class KabotDBUtilityScope(
             .getCollection<AttendanceReport>(CollectionNames.ATTENDANCE.stringValue)
             .find()
             .descendingSort(AttendanceReport::date)
-            .first() ?: throw ResourceNotFoundException("Today's attendance", CollectionNames.ATTENDANCE.stringValue)
+            .first()
 }
