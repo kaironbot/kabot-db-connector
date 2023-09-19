@@ -2,6 +2,7 @@ package org.wagham.db.scopes.utility
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.KabotMultiDBClientTest
@@ -46,7 +47,7 @@ fun KabotMultiDBClientTest.testAttendance(
             )
         )
         client.utilityScope.updateAttendance(guildId, attendance) shouldBe true
-        val retrievedAttendance = client.utilityScope.getLastAttendance(guildId)
+        val retrievedAttendance = client.utilityScope.getLastAttendance(guildId).shouldNotBeNull()
         retrievedAttendance.date shouldBe attendance.date
         retrievedAttendance.message shouldBe attendance.message
         retrievedAttendance.players.size shouldBe 1
@@ -59,7 +60,7 @@ fun KabotMultiDBClientTest.testAttendance(
             )
         ) shouldBe true
 
-        val updatedAttendance = client.utilityScope.getLastAttendance(guildId)
+        val updatedAttendance = client.utilityScope.getLastAttendance(guildId).shouldNotBeNull()
         updatedAttendance.date shouldBe attendance.date
         updatedAttendance.message shouldBe attendance.message
         updatedAttendance.players.keys shouldContain newPlayer
