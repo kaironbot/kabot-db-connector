@@ -6,6 +6,7 @@ import org.bson.codecs.pojo.annotations.BsonId
 import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.models.embed.ProficiencyStub
 import org.wagham.db.utils.JacksonLenientCharacterStateDeserializer
+import org.wagham.db.utils.JacksonLenientDndClassDeserializer
 import java.util.Date
 
 data class Character (
@@ -14,7 +15,7 @@ data class Character (
     val player: String,
     val race: String?,
     val territory: String?,
-    @JsonProperty("class") val characterClass: String?,
+    @JsonProperty("class") @JsonDeserialize(using = JacksonLenientDndClassDeserializer::class) val characterClass: List<String> = emptyList(),
     @JsonDeserialize(using = JacksonLenientCharacterStateDeserializer::class) val status: CharacterStatus = CharacterStatus.active,
     val masterMS: Int = 0,
     @JsonProperty("PBCMS") val pbcMS: Int = 0,

@@ -228,7 +228,7 @@ class KabotDBCharacterScope(
                     player = playerId,
                     race = data.race,
                     territory = data.territory,
-                    characterClass = data.characterClass,
+                    characterClass = data.characterClass?.let { listOf(it) } ?: emptyList(),
                     age = data.age,
                     created = Date(),
                     errataMS = startingExp,

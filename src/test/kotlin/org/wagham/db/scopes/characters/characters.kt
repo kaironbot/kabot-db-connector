@@ -182,7 +182,7 @@ fun KabotMultiDBClientTest.testCharacters(
         val expTable = client.utilityScope.getExpTable(guildId)
         character.name shouldBe data.name
         character.race shouldBe data.race
-        character.characterClass shouldBe data.characterClass
+        character.characterClass shouldBe data.characterClass?.let { listOf(it) }
         character.territory shouldBe null
         character.ms() shouldBe expTable.levelToExp(data.startingLevel)
     }
@@ -212,7 +212,7 @@ fun KabotMultiDBClientTest.testCharacters(
         val expTable = client.utilityScope.getExpTable(guildId)
         character.name shouldBe data.name
         character.race shouldBe data.race
-        character.characterClass shouldBe data.characterClass
+        character.characterClass shouldBe data.characterClass?.let { listOf(it) }
         character.territory shouldBe null
         character.ms() shouldBe expTable.levelToExp(data.startingLevel)
     }
@@ -252,9 +252,9 @@ fun KabotMultiDBClientTest.testCharacters(
             it.allActive.size shouldBeGreaterThan 0
             it.allActive
         }.map { character ->
-            characters.first { it.name == character.name }.let {
-                character.race shouldBe it.race
-                character.characterClass shouldBe it.characterClass
+            characters.first { it.name == character.name }.let { ccd ->
+                character.race shouldBe ccd.race
+                character.characterClass shouldBe ccd.characterClass?.let { listOf(it) }
                 character.age shouldBe null
                 character.territory shouldBe null
             }
@@ -290,7 +290,7 @@ fun KabotMultiDBClientTest.testCharacters(
             it.currentActive.shouldNotBeNull()
         }.let { character ->
             character.race shouldBe activeCharacter.race
-            character.characterClass shouldBe activeCharacter.characterClass
+            character.characterClass shouldBe activeCharacter.characterClass?.let { listOf(it) }
             character.age shouldBe null
             character.territory shouldBe null
         }
