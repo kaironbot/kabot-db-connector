@@ -14,6 +14,7 @@ import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.models.Building
 import org.wagham.db.models.Errata
 import org.wagham.db.models.Player
+import org.wagham.db.models.embed.LabelStub
 import org.wagham.db.models.embed.ProficiencyStub
 import org.wagham.db.utils.JacksonLenientCharacterStateDeserializer
 import org.wagham.db.utils.JacksonLenientDndClassDeserializer
@@ -40,7 +41,8 @@ data class CharacterWithPlayer (
     val inventory: Map<String, Int> = mapOf(),
     val languages: Set<ProficiencyStub> = setOf(),
     val money: Float = 0f,
-    val proficiencies: Set<ProficiencyStub> = setOf()
+    val proficiencies: Set<ProficiencyStub> = setOf(),
+    val labels: Set<LabelStub> = setOf()
 ) {
     companion object {
 

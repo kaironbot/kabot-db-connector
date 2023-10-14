@@ -15,12 +15,12 @@ class KabotDBFeatScope(
         client.getGuildDb(guildId).getCollection(collectionName)
 
     fun getAllFeats(guildId: String) =
-        getMainCollection(guildId).find("{}").toFlow()
+        getMainCollection(guildId).find().toFlow()
 
     suspend fun rewriteAllFeats(guildId: String, feats: List<Feat>) =
         getMainCollection(guildId)
             .let {
-                it.deleteMany("{}")
+                it.deleteMany()
                 it.insertMany(feats)
             }.insertedIds.size == feats.size
 }

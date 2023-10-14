@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.bson.codecs.pojo.annotations.BsonId
 import org.wagham.db.enums.CharacterStatus
+import org.wagham.db.models.embed.LabelStub
 import org.wagham.db.models.embed.ProficiencyStub
 import org.wagham.db.utils.JacksonLenientCharacterStateDeserializer
 import org.wagham.db.utils.JacksonLenientDndClassDeserializer
@@ -31,7 +32,8 @@ data class Character (
     val inventory: Map<String, Int> = emptyMap(),
     val languages: Set<ProficiencyStub> = emptySet(),
     val money: Float = 0f,
-    val proficiencies: Set<ProficiencyStub> = emptySet()
+    val proficiencies: Set<ProficiencyStub> = emptySet(),
+    val labels: Set<LabelStub> = emptySet()
 ) {
 
     fun ms() = listOf(masterMS, pbcMS, errataMS, sessionMS).sum()

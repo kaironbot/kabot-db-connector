@@ -13,13 +13,13 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.flow.*
 import org.wagham.db.KabotMultiDBClient
-import org.wagham.db.KabotMultiDBClientTest
 import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.exceptions.TransactionAbortedException
 import org.wagham.db.models.Building
 import org.wagham.db.models.MongoCredentials
 import org.wagham.db.models.creation.CharacterCreationData
+import org.wagham.db.models.embed.LabelStub
 import org.wagham.db.models.embed.ProficiencyStub
 import org.wagham.db.uuid
 import java.util.*
@@ -330,17 +330,13 @@ class KabotDBCharacterScopeTest : StringSpec() {
 
             val newRace = uuid()
             val newClass = uuid()
-            client.charactersScope.updateCharacter(
-                guildId,
-                anActiveCharacter.copy(
-                    race = newRace,
-                    characterClass = anActiveCharacter.characterClass + newClass
-                )
+            val updatedCharacter = anActiveCharacter.copy(
+                race = newRace,
+                characterClass = anActiveCharacter.characterClass + newClass,
+                labels = anActiveCharacter.labels + LabelStub(uuid(), uuid())
             )
-            client.charactersScope.getCharacter(guildId, anActiveCharacter.id).let {
-                it.race shouldBe newRace
-                it.characterClass shouldBe anActiveCharacter.characterClass + newClass
-            }
+            client.charactersScope.updateCharacter(guildId, updatedCharacter)
+            client.charactersScope.getCharacter(guildId, anActiveCharacter.id) shouldBe updatedCharacter
         }
 
         "ms function should be able to get the correct ms for a player" {

@@ -13,6 +13,7 @@ enum class CollectionNames(val stringValue: String) {
     FEATS("feats"),
     FLAME("flame"),
     ITEMS("items"),
+    LABELS("labels"),
     LANGUAGES("languages"),
     MARKETS("markets"),
     PLAYERS("players"),
