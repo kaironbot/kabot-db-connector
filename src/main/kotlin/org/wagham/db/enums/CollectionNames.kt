@@ -14,6 +14,7 @@ enum class CollectionNames(val stringValue: String) {
     FLAME("flame"),
     ITEMS("items"),
     LANGUAGES("languages"),
+    MARKETS("markets"),
     PLAYERS("players"),
     RACES("races"),
     SCHEDULED_EVENTS("scheduled_events"),

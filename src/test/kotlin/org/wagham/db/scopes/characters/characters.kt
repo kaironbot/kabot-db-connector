@@ -57,13 +57,18 @@ fun KabotMultiDBClientTest.testCharacters(
             .random()
 
         val newRace = uuid()
+        val newClass = uuid()
         client.charactersScope.updateCharacter(
             guildId,
             anActiveCharacter.copy(
-                race = newRace
+                race = newRace,
+                characterClass = anActiveCharacter.characterClass + newClass
             )
         )
-        client.charactersScope.getCharacter(guildId, anActiveCharacter.id).race shouldBe newRace
+        client.charactersScope.getCharacter(guildId, anActiveCharacter.id).let {
+            it.race shouldBe newRace
+            it.characterClass shouldBe listOf(anActiveCharacter.characterClass, newClass)
+        }
     }
 
     "ms function should be able to get the correct ms for a player" {
