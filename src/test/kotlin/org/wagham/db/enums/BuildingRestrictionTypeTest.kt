@@ -25,7 +25,7 @@ class BuildingRestrictionTypeTest: StringSpec ({
             name = uuid(),
             race = null,
             territory = null,
-            characterClass = null,
+            characterClass = emptyList(),
             created = null,
             errata = emptyList(),
             errataMS = 0,

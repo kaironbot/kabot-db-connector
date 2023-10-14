@@ -14,8 +14,10 @@ import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.models.Building
 import org.wagham.db.models.Errata
 import org.wagham.db.models.Player
+import org.wagham.db.models.embed.LabelStub
 import org.wagham.db.models.embed.ProficiencyStub
 import org.wagham.db.utils.JacksonLenientCharacterStateDeserializer
+import org.wagham.db.utils.JacksonLenientDndClassDeserializer
 import java.util.*
 
 data class CharacterWithPlayer (
@@ -24,7 +26,7 @@ data class CharacterWithPlayer (
     val player: Player,
     val race: String?,
     val territory: String?,
-    @JsonProperty("class") val characterClass: String?,
+    @JsonProperty("class") @JsonDeserialize(using = JacksonLenientDndClassDeserializer::class) val characterClass: List<String> = emptyList(),
     @JsonDeserialize(using = JacksonLenientCharacterStateDeserializer::class) val status: CharacterStatus,
     val masterMS: Int,
     @JsonProperty("PBCMS") val pbcMS: Int,
@@ -39,7 +41,8 @@ data class CharacterWithPlayer (
     val inventory: Map<String, Int> = mapOf(),
     val languages: Set<ProficiencyStub> = setOf(),
     val money: Float = 0f,
-    val proficiencies: Set<ProficiencyStub> = setOf()
+    val proficiencies: Set<ProficiencyStub> = setOf(),
+    val labels: Set<LabelStub> = setOf()
 ) {
     companion object {
 
