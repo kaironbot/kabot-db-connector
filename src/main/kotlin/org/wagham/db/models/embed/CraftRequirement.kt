@@ -5,6 +5,7 @@ data class CraftRequirement(
     val minQuantity: Int?,
     val maxQuantity: Int?,
     val materials: Map<String, Int> = mapOf(),
+    val label: String? = null,
     override val cost: Float = 0f,
     override val buildings: Set<String> = setOf(),
     override val tools: Set<String> = setOf(),
