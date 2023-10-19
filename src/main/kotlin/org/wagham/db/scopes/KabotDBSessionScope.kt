@@ -1,10 +1,7 @@
 package org.wagham.db.scopes
 
-import org.litote.kmongo.and
+import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.gte
-import org.litote.kmongo.lte
-import org.litote.kmongo.ne
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CollectionNames
 import org.wagham.db.models.Session
@@ -21,6 +18,9 @@ class KabotDBSessionScope(
 
     override fun getMainCollection(guildId: String): CoroutineCollection<Session> =
         client.getGuildDb(guildId).getCollection(collectionName)
+
+    suspend fun getSessionByUid(guildId: String, sessionUid: Int) =
+        getMainCollection(guildId).findOne(Session::uid eq sessionUid)
 
     fun getAllSessions(guildId: String, startDate: Date? = null, endDate: Date? = null) =
         getMainCollection(guildId).find(

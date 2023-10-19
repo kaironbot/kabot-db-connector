@@ -76,6 +76,11 @@ class KabotDBSessionScopeTest : StringSpec() {
             }
         }
 
+        "Can get a session by UID" {
+            val session = client.sessionScope.getAllSessions(guildId).take(100).toList().random()
+            client.sessionScope.getSessionByUid(guildId, session.uid) shouldBe session
+        }
+
         "Can get all the sessions for a player" {
             val master = client.sessionScope.getAllSessions(guildId).take(1000).toList().random().master
             val masterPlayer = client.charactersScope.getCharacter(guildId, master).player
