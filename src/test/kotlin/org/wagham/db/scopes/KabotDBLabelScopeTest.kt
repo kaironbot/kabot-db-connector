@@ -37,7 +37,7 @@ class KabotDBLabelScopeTest : StringSpec() {
             val label = Label(
                 uuid(),
                 uuid(),
-                LabelType.CHARACTER.takeIf { Random.nextBoolean() } ?: LabelType.SESSION
+                setOf(LabelType.CHARACTER.takeIf { Random.nextBoolean() } ?: LabelType.SESSION)
             )
             client.labelsScope.createOrUpdateLabel(
                 guildId,
@@ -52,12 +52,12 @@ class KabotDBLabelScopeTest : StringSpec() {
         }
 
         "Can retrieve labels by type" {
-            client.labelsScope.createOrUpdateLabel(guildId, Label(uuid(), uuid(), LabelType.CHARACTER)) shouldBe true
-            client.labelsScope.createOrUpdateLabel(guildId, Label(uuid(), uuid(), LabelType.SESSION)) shouldBe true
+            client.labelsScope.createOrUpdateLabel(guildId, Label(uuid(), uuid(), setOf(LabelType.CHARACTER))) shouldBe true
+            client.labelsScope.createOrUpdateLabel(guildId, Label(uuid(), uuid(), setOf(LabelType.SESSION))) shouldBe true
 
             val labelType = LabelType.CHARACTER.takeIf { Random.nextBoolean() } ?: LabelType.SESSION
             client.labelsScope.getLabels(guildId, labelType).onEach {
-                it.type shouldBe labelType
+                it.types shouldBe setOf(labelType)
             }.count() shouldBeGreaterThan 0
         }
 

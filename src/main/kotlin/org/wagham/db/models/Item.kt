@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.bson.codecs.pojo.annotations.BsonId
 import org.wagham.db.models.embed.BuySellRequirement
 import org.wagham.db.models.embed.CraftRequirement
+import org.wagham.db.models.embed.LabelStub
 import org.wagham.db.utils.JacksonLenientCraftDeserializer
 
 data class Item (
@@ -18,5 +19,6 @@ data class Item (
     val attunement: Boolean = false,
     val giveRatio: Float = 1f,
     @JsonDeserialize(using = JacksonLenientCraftDeserializer::class)
-    val craft: List<CraftRequirement> = emptyList()
+    val craft: List<CraftRequirement> = emptyList(),
+    val labels: Set<LabelStub> = emptySet()
 )
