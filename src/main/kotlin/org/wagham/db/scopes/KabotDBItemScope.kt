@@ -1,12 +1,14 @@
 package org.wagham.db.scopes
 
 import com.mongodb.client.model.UpdateOptions
+import org.litote.kmongo.contains
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
 import org.litote.kmongo.or
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CollectionNames
 import org.wagham.db.models.Item
+import org.wagham.db.models.embed.LabelStub
 
 class KabotDBItemScope(
     override val client: KabotMultiDBClient
@@ -18,12 +20,21 @@ class KabotDBItemScope(
         client.getGuildDb(guildId).getCollection(collectionName)
 
     fun getAllItems(guildId: String) =
-        getMainCollection(guildId).find("{}").toFlow()
+        getMainCollection(guildId).find().toFlow()
 
-    suspend fun updateItem(guildId: String, item: Item)
-            = updateItems(guildId, listOf(item))
+    fun getItems(guildId: String, labels: List<LabelStub>) =
+        getMainCollection(guildId).find(
+            or(
+                labels.map {
+                    Item::labels contains it
+                }
+            )
+        )
 
-    suspend fun updateItems(guildId: String, items: List<Item>) =
+    suspend fun createOrUpdateItem(guildId: String, item: Item)
+            = createOrUpdateItem(guildId, listOf(item))
+
+    suspend fun createOrUpdateItem(guildId: String, items: List<Item>) =
         getMainCollection(guildId).let { collection ->
             client.transaction(guildId) {
                 val count = items.sumOf { item ->
