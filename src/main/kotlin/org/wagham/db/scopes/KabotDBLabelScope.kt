@@ -4,6 +4,7 @@ import com.mongodb.client.model.UpdateOptions
 import org.litote.kmongo.contains
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
+import org.litote.kmongo.`in`
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CollectionNames
 import org.wagham.db.enums.LabelType
@@ -31,6 +32,16 @@ class KabotDBLabelScope(
         getMainCollection(guildId).find(labelType?.let {
             Label::types contains it
         }).toFlow()
+
+    fun getLabels(guildId: String, labelIds: List<String>, labelType: LabelType? = null) =
+        getMainCollection(guildId).find(
+            *listOfNotNull(
+                Label::id `in` labelIds,
+                labelType?.let {
+                    Label::types contains labelType
+                }
+            ).toTypedArray()
+        ).toFlow()
 
     suspend fun getLabel(guildId: String, labelId: String) =
         getMainCollection(guildId).findOne(Label::id eq  labelId)

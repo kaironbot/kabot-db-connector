@@ -1,11 +1,13 @@
 package org.wagham.db.scopes
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.toList
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.LabelType
 import org.wagham.db.models.MongoCredentials
@@ -59,6 +61,23 @@ class KabotDBLabelScopeTest : StringSpec() {
             client.labelsScope.getLabels(guildId, labelType).onEach {
                 it.types shouldBe setOf(labelType)
             }.count() shouldBeGreaterThan 0
+        }
+
+        "Can retrieve labels by ids an type" {
+            val label1 = Label(uuid(), uuid(), setOf(LabelType.CHARACTER))
+            val label2 =  Label(uuid(), uuid(), setOf(LabelType.SESSION))
+            client.labelsScope.createOrUpdateLabel(guildId, label1) shouldBe true
+            client.labelsScope.createOrUpdateLabel(guildId, label2) shouldBe true
+
+            client.labelsScope.getLabels(guildId, listOf(label1.id, label2.id)).let {
+                it.toList() shouldContainExactlyInAnyOrder listOf(label1, label2)
+            }
+
+            client.labelsScope.getLabels(guildId, listOf(label1.id, label2.id), labelType = LabelType.SESSION).let {
+                it.toList() shouldContainExactlyInAnyOrder listOf(label2)
+            }
+
+            client.labelsScope.getLabels(guildId, listOf(label1.id, label2.id), labelType = LabelType.ITEM).count() shouldBe 0
         }
 
     }
