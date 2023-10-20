@@ -19,7 +19,7 @@ buildscript {
 
 
 group = "org.wagham"
-version = "0.19.3"
+version = "0.19.4"
 
 apply(plugin = "com.dipien.semantic-version")
 apply(plugin = "maven-publish")
