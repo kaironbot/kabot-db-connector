@@ -64,6 +64,20 @@ class KabotDBCharacterScope(
             .findOne(session, Character::id eq characterId)
             ?: throw ResourceNotFoundException(characterId, "characters")
 
+    /**
+     * Gets all the characters in the guild which id is in the provided list.
+     * If an id does not correspond to any character, then it is ignored.
+     *
+     * @param guildId the id of the guild where to search the characters.
+     * @param characterIds a [List] of character ids to search.
+     * @return a [Flow] containing the retrieved [Character]s.
+     */
+    fun getCharacters(guildId: String, characterIds: List<String>): Flow<Character> =
+        getMainCollection(guildId)
+            .find(
+                Character::id `in` characterIds
+            ).toFlow()
+
     suspend fun updateCharacter(guildId: String, updatedCharacter: Character): Boolean =
         getMainCollection(guildId)
             .updateOne(
