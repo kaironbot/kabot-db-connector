@@ -1,6 +1,7 @@
 package org.wagham.db.scopes
 
 import com.mongodb.client.model.UpdateOptions
+import kotlinx.coroutines.flow.Flow
 import org.litote.kmongo.contains
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
@@ -22,14 +23,21 @@ class KabotDBItemScope(
     fun getAllItems(guildId: String) =
         getMainCollection(guildId).find().toFlow()
 
-    fun getItems(guildId: String, labels: List<LabelStub>) =
+    /**
+     * Returns all the items in a guild that have at least one among the provided labels.
+     *
+     * @param guildId the guild id.
+     * @param labels a [List] of [LabelStub].
+     * @return a [Flow] of [Item]s, each one having at least one of the specified labels.
+     */
+    fun getItems(guildId: String, labels: List<LabelStub>): Flow<Item> =
         getMainCollection(guildId).find(
             or(
                 labels.map {
                     Item::labels contains it
                 }
             )
-        )
+        ).toFlow()
 
     suspend fun createOrUpdateItem(guildId: String, item: Item)
             = createOrUpdateItem(guildId, listOf(item))

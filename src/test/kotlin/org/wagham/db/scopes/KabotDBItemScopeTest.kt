@@ -130,13 +130,14 @@ class KabotDBItemScopeTest : StringSpec() {
 
         "Can get items that match at least one label" {
             val stub = LabelStub(uuid(), uuid())
+            val stub2 = LabelStub(uuid(), uuid())
             val newItem = Item(
                 name = uuid(),
                 labels = setOf(stub)
             )
 
             client.itemsScope.createOrUpdateItem(guildId, newItem) shouldBe true
-            client.itemsScope.getItems(guildId, listOf(stub)).toList().onEach {
+            client.itemsScope.getItems(guildId, listOf(stub, stub2)).toList().onEach {
                 it.labels shouldContain stub
             }.size shouldBeGreaterThan 0
         }
