@@ -8,6 +8,7 @@ import java.util.Date
 
 data class WeeklyMarket(
     @BsonId val date: Date,
+    val message: String,
     val items: Map<ItemId, CraftRequirement> = emptyMap(),
     val buyLog: Map<PlayerId, List<ItemId>> = emptyMap()
 )

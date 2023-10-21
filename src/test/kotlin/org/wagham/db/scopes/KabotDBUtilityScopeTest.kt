@@ -144,6 +144,7 @@ class KabotDBUtilityScopeTest : StringSpec() {
             val id = dateAtMidnight(Date())
             val market = WeeklyMarket(
                 id,
+                uuid(),
                 mapOf(
                     uuid() to CraftRequirement(0L, 1, 100)
                 )
