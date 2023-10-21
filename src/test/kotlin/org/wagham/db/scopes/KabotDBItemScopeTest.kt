@@ -2,7 +2,7 @@ package org.wagham.db.scopes
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -128,17 +128,23 @@ class KabotDBItemScopeTest : StringSpec() {
             }
         }
 
-        "Can get items that match at least one label" {
+        "Can get items that match one or more labels" {
             val stub = LabelStub(uuid(), uuid())
             val stub2 = LabelStub(uuid(), uuid())
+            val stub3 = LabelStub(uuid(), uuid())
             val newItem = Item(
                 name = uuid(),
-                labels = setOf(stub)
+                labels = setOf(stub, stub2, stub3)
+            )
+            val nonMatchedItem = Item(
+                name = uuid(),
+                labels = setOf(stub, stub3)
             )
 
             client.itemsScope.createOrUpdateItem(guildId, newItem) shouldBe true
+            client.itemsScope.createOrUpdateItem(guildId, nonMatchedItem) shouldBe true
             client.itemsScope.getItems(guildId, listOf(stub, stub2)).toList().onEach {
-                it.labels shouldContain stub
+                it.labels shouldContainAll listOf(stub, stub2)
             }.size shouldBeGreaterThan 0
         }
 

@@ -24,19 +24,17 @@ class KabotDBItemScope(
         getMainCollection(guildId).find().toFlow()
 
     /**
-     * Returns all the items in a guild that have at least one among the provided labels.
+     * Returns all the items in a guild that have all the provided labels.
      *
      * @param guildId the guild id.
      * @param labels a [List] of [LabelStub].
-     * @return a [Flow] of [Item]s, each one having at least one of the specified labels.
+     * @return a [Flow] of [Item]s, each one having all the specified labels.
      */
     fun getItems(guildId: String, labels: List<LabelStub>): Flow<Item> =
         getMainCollection(guildId).find(
-            or(
-                labels.map {
-                    Item::labels contains it
-                }
-            )
+            *labels.map {
+                Item::labels contains it
+            }.toTypedArray()
         ).toFlow()
 
     suspend fun createOrUpdateItem(guildId: String, item: Item)
