@@ -3,6 +3,7 @@ package org.wagham.db.scopes
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.floats.shouldBeGreaterThan
 import io.kotest.matchers.ints.shouldBeGreaterThan
@@ -352,6 +353,15 @@ class KabotDBCharacterScopeTest : StringSpec() {
 
         "getActiveCharacter should not be able to get data for a non existing player" {
             client.charactersScope.getActiveCharacters(guildId, "I_DO_NOT_EXIST").count() shouldBe 0
+        }
+
+        "getCharacters can get all the characters with a specified id" {
+            val characters = client.charactersScope.getAllCharacters(guildId).take(1000).toList().let { characters ->
+                List(10) { characters.random() }
+            }
+
+            val retrievedCharacters = client.charactersScope.getCharacters(guildId, characters.map { it.id } + List(10) { uuid() }).toList()
+            retrievedCharacters shouldContainExactlyInAnyOrder characters
         }
 
         "getCharactersWithPlayer should be able to get data for all the characters if no parameter is passed" {
