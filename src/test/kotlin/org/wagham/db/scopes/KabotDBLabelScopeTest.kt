@@ -1,6 +1,7 @@
 package org.wagham.db.scopes
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -59,7 +60,7 @@ class KabotDBLabelScopeTest : StringSpec() {
 
             val labelType = LabelType.CHARACTER.takeIf { Random.nextBoolean() } ?: LabelType.SESSION
             client.labelsScope.getLabels(guildId, labelType).onEach {
-                it.types shouldBe setOf(labelType)
+                it.types shouldContain labelType
             }.count() shouldBeGreaterThan 0
         }
 

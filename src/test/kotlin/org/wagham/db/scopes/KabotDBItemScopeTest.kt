@@ -3,6 +3,7 @@ package org.wagham.db.scopes
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainAll
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -12,6 +13,7 @@ import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.models.Item
 import org.wagham.db.models.MongoCredentials
+import org.wagham.db.models.embed.CraftRequirement
 import org.wagham.db.models.embed.LabelStub
 import org.wagham.db.uuid
 
@@ -51,7 +53,7 @@ class KabotDBItemScopeTest : StringSpec() {
                 .map { it.copy(link = uuid(), category = uuid()) }
                 .toList()
 
-            client.itemsScope.createOrUpdateItem(guildId, itemsToUpdate) shouldBe true
+            client.itemsScope.createOrUpdateItems(guildId, itemsToUpdate) shouldBe true
 
             client.itemsScope.getAllItems(guildId)
                 .filter { i -> itemsToUpdate.map { it.name }.contains(i.name) }
@@ -84,7 +86,7 @@ class KabotDBItemScopeTest : StringSpec() {
         "Cannot update items from a non existent guild" {
             val itemsToUpdate = client.itemsScope.getAllItems(guildId).toList()
             shouldThrow<InvalidGuildException> {
-                client.itemsScope.createOrUpdateItem(uuid(), itemsToUpdate)
+                client.itemsScope.createOrUpdateItems(uuid(), itemsToUpdate)
             }
         }
 
@@ -96,7 +98,7 @@ class KabotDBItemScopeTest : StringSpec() {
 
             val newItemsId = newItems.map { it.name }
 
-            client.itemsScope.createOrUpdateItem(guildId, newItems) shouldBe true
+            client.itemsScope.createOrUpdateItems(guildId, newItems) shouldBe true
 
             client.itemsScope.deleteItems(guildId, newItemsId) shouldBe true
 
@@ -113,7 +115,7 @@ class KabotDBItemScopeTest : StringSpec() {
 
             val newItemsId = newItems.map { it.name }
 
-            client.itemsScope.createOrUpdateItem(guildId, newItems) shouldBe true
+            client.itemsScope.createOrUpdateItems(guildId, newItems) shouldBe true
 
             client.itemsScope.deleteItems(guildId, newItemsId + uuid()) shouldBe false
 
@@ -146,6 +148,31 @@ class KabotDBItemScopeTest : StringSpec() {
             client.itemsScope.getItems(guildId, listOf(stub, stub2)).toList().onEach {
                 it.labels shouldContainAll listOf(stub, stub2)
             }.size shouldBeGreaterThan 0
+        }
+
+        "Can get all the items that have a certain ingredient" {
+            val ingredient = Item(name = uuid())
+            val item1 = Item(
+                name = uuid(),
+                craft = listOf(CraftRequirement(
+                    timeRequired = null,
+                    maxQuantity = null,
+                    minQuantity = null,
+                    materials = mapOf(ingredient.name to 1)
+                ))
+            )
+            val item2 = Item(
+                name = uuid(),
+                craft = listOf(CraftRequirement(
+                    timeRequired = null,
+                    maxQuantity = null,
+                    minQuantity = null,
+                    materials = mapOf(ingredient.name to 1)
+                ))
+            )
+
+            client.itemsScope.createOrUpdateItems(guildId, listOf(ingredient, item1, item2)) shouldBe true
+            client.itemsScope.isMaterialOf(guildId, ingredient).toList() shouldContainExactlyInAnyOrder listOf(item1, item2)
         }
 
     }
