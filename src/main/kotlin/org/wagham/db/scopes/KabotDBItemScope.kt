@@ -11,6 +11,7 @@ import org.litote.kmongo.or
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CollectionNames
 import org.wagham.db.models.Item
+import org.wagham.db.models.client.TransactionResult
 import org.wagham.db.models.embed.LabelStub
 
 class KabotDBItemScope(
@@ -44,18 +45,19 @@ class KabotDBItemScope(
      *
      * @param guildId the id of the guild where to update the items.
      * @param item the [Item] to create or update.
-     * @return true if the operation was successful, false otherwise
+     * @return a [TransactionResult] with the result of the operation
      */
-    suspend fun createOrUpdateItem(guildId: String, item: Item) = createOrUpdateItems(guildId, listOf(item))
+    suspend fun createOrUpdateItem(guildId: String, item: Item): TransactionResult =
+        createOrUpdateItems(guildId, listOf(item))
 
     /**
      * Given a list of [Item]s in a guild, creates the ones that do not exist and updates the one that already exist.
      *
      * @param guildId the id of the guild where to update the items.
      * @param items a [List] of [Item]s to create or update.
-     * @return true if the operation was successful, false otherwise
+     * @return a [TransactionResult] with the result of the operation
      */
-    suspend fun createOrUpdateItems(guildId: String, items: List<Item>) =
+    suspend fun createOrUpdateItems(guildId: String, items: List<Item>): TransactionResult =
         getMainCollection(guildId).let { collection ->
             client.transaction(guildId) {
                 val existingItemsNames = collection.find(
@@ -72,7 +74,7 @@ class KabotDBItemScope(
                     collection.updateOne(Item::name eq it.name, it).modifiedCount == 1L
                 }
                 creationResult && updateResult
-            }.committed
+            }
         }
 
     /**
