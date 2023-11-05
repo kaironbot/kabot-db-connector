@@ -53,7 +53,7 @@ class KabotDBItemScopeTest : StringSpec() {
                 .map { it.copy(link = uuid(), category = uuid()) }
                 .toList()
 
-            client.itemsScope.createOrUpdateItems(guildId, itemsToUpdate) shouldBe true
+            client.itemsScope.createOrUpdateItems(guildId, itemsToUpdate).committed shouldBe true
 
             client.itemsScope.getAllItems(guildId)
                 .filter { i -> itemsToUpdate.map { it.name }.contains(i.name) }
@@ -73,7 +73,7 @@ class KabotDBItemScopeTest : StringSpec() {
                     category = uuid()
                 )
 
-            client.itemsScope.createOrUpdateItem(guildId, itemToUpdate) shouldBe true
+            client.itemsScope.createOrUpdateItem(guildId, itemToUpdate).committed shouldBe true
 
             client.itemsScope.getAllItems(guildId)
                 .first { it.name == itemToUpdate.name }
@@ -98,7 +98,7 @@ class KabotDBItemScopeTest : StringSpec() {
 
             val newItemsId = newItems.map { it.name }
 
-            client.itemsScope.createOrUpdateItems(guildId, newItems) shouldBe true
+            client.itemsScope.createOrUpdateItems(guildId, newItems).committed shouldBe true
 
             client.itemsScope.deleteItems(guildId, newItemsId) shouldBe true
 
@@ -107,7 +107,7 @@ class KabotDBItemScopeTest : StringSpec() {
             }
         }
 
-        "If a non-existing building is in the batch, false is returned but the others are deleted" {
+        "If a non-existing item is in the batch, false is returned but the others are deleted" {
             val newItems = client.itemsScope.getAllItems(guildId)
                 .take(2)
                 .map { it.copy(name = uuid(), link = uuid(), category = uuid()) }
@@ -115,7 +115,7 @@ class KabotDBItemScopeTest : StringSpec() {
 
             val newItemsId = newItems.map { it.name }
 
-            client.itemsScope.createOrUpdateItems(guildId, newItems) shouldBe true
+            client.itemsScope.createOrUpdateItems(guildId, newItems).committed shouldBe true
 
             client.itemsScope.deleteItems(guildId, newItemsId + uuid()) shouldBe false
 
@@ -143,8 +143,8 @@ class KabotDBItemScopeTest : StringSpec() {
                 labels = setOf(stub, stub3)
             )
 
-            client.itemsScope.createOrUpdateItem(guildId, newItem) shouldBe true
-            client.itemsScope.createOrUpdateItem(guildId, nonMatchedItem) shouldBe true
+            client.itemsScope.createOrUpdateItem(guildId, newItem).committed shouldBe true
+            client.itemsScope.createOrUpdateItem(guildId, nonMatchedItem).committed shouldBe true
             client.itemsScope.getItems(guildId, listOf(stub, stub2)).toList().onEach {
                 it.labels shouldContainAll listOf(stub, stub2)
             }.size shouldBeGreaterThan 0
@@ -171,7 +171,7 @@ class KabotDBItemScopeTest : StringSpec() {
                 ))
             )
 
-            client.itemsScope.createOrUpdateItems(guildId, listOf(ingredient, item1, item2)) shouldBe true
+            client.itemsScope.createOrUpdateItems(guildId, listOf(ingredient, item1, item2)).committed shouldBe true
             client.itemsScope.isMaterialOf(guildId, ingredient).toList() shouldContainExactlyInAnyOrder listOf(item1, item2)
         }
 
