@@ -155,19 +155,13 @@ class KabotDBItemScopeTest : StringSpec() {
             val item1 = Item(
                 name = uuid(),
                 craft = listOf(CraftRequirement(
-                    timeRequired = null,
-                    maxQuantity = null,
-                    minQuantity = null,
-                    materials = mapOf(ingredient.name to 1)
+                    materials = mapOf(ingredient.name to 1f)
                 ))
             )
             val item2 = Item(
                 name = uuid(),
                 craft = listOf(CraftRequirement(
-                    timeRequired = null,
-                    maxQuantity = null,
-                    minQuantity = null,
-                    materials = mapOf(ingredient.name to 1)
+                    materials = mapOf(ingredient.name to 1f)
                 ))
             )
 
