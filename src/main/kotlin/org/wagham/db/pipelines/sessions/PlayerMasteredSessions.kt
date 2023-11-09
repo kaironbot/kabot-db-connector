@@ -9,6 +9,7 @@ import org.litote.kmongo.*
 import org.wagham.db.models.Character
 import org.wagham.db.models.CharacterUpdate
 import org.wagham.db.models.GameDate
+import org.wagham.db.models.embed.LabelStub
 import java.util.*
 
 data class PlayerMasteredSessions(
@@ -21,7 +22,8 @@ data class PlayerMasteredSessions(
     val uid: Int,
     @JsonProperty("game_date") val gameDate: GameDate,
     val masterCharacter: Character,
-    val unwindCounter: Int
+    val unwindCounter: Int,
+    val labels: Set<LabelStub> = setOf()
 ) {
 
     companion object {

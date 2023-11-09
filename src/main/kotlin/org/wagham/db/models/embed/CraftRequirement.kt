@@ -1,10 +1,10 @@
 package org.wagham.db.models.embed
 
 data class CraftRequirement(
-    val timeRequired: Long?,
-    val minQuantity: Int?,
-    val maxQuantity: Int?,
-    val materials: Map<String, Int> = mapOf(),
+    val timeRequired: Long? = null,
+    val minQuantity: Int? = null,
+    val maxQuantity: Int? = null,
+    val materials: Map<String, Float> = mapOf(),
     val label: String? = null,
     override val cost: Float = 0f,
     override val buildings: Set<String> = setOf(),
