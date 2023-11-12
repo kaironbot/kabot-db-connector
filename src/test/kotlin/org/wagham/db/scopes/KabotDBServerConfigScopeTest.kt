@@ -6,10 +6,13 @@ import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.wagham.db.KabotMultiDBClient
+import org.wagham.db.enums.NyxRoles
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.models.MongoCredentials
+import org.wagham.db.models.NyxConfig
 import org.wagham.db.models.ServerConfig
 import org.wagham.db.models.embed.EventConfig
+import org.wagham.db.uuid
 
 class KabotDBServerConfigScopeTest : StringSpec() {
 
@@ -37,29 +40,29 @@ class KabotDBServerConfigScopeTest : StringSpec() {
         val testChannels = EventConfig(true, setOf("1234"))
 
         "Should be able to set a config and retrieve it" {
-            client.serverConfigScope.setGuildConfig(
-                guildId,
-                ServerConfig(
-                    id = "serverConfig",
-                    channels = mapOf(testChannelIdKey to testChannelId),
-                    eventChannels = mapOf(testCommand to testChannels)
-                )
+            val config = ServerConfig(
+                id = "serverConfig",
+                adminRoleId = uuid(),
+                channels = mapOf(testChannelIdKey to testChannelId),
+                eventChannels = mapOf(testCommand to testChannels)
             )
-            client.serverConfigScope.getGuildConfig(guildId)
-                .let {
-                    it.channels shouldContainKey testChannelIdKey
-                    it.channels[testChannelIdKey] shouldBe testChannelId
-                    it.eventChannels shouldContainKey testCommand
-                    it.eventChannels[testCommand]!!.enabled shouldBe true
-                    it.eventChannels[testCommand]!!.allowedChannels.size shouldBe 1
-                    it.eventChannels[testCommand]!!.allowedChannels.first() shouldBe "1234"
-                }
+            client.serverConfigScope.setGuildConfig(guildId, config) shouldBe true
+            client.serverConfigScope.getGuildConfig(guildId) shouldBe config
         }
 
         "Should not be able to get a server config for a non-existing Guild" {
             shouldThrow<InvalidGuildException> {
                 client.serverConfigScope.getGuildConfig("I_DO_NOT_EXIST")
             }
+        }
+
+        "Should be able to set a nyx Config and retrieve it" {
+            val config = NyxConfig(
+                id = "nyxConfig",
+                roleConfig = mapOf(uuid() to NyxRoles.MANAGE_SESSIONS)
+            )
+            client.serverConfigScope.setNyxConfig(guildId, config) shouldBe true
+            client.serverConfigScope.getNyxConfig(guildId) shouldBe config
         }
 
     }
