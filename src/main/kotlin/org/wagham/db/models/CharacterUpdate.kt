@@ -7,5 +7,5 @@ data class CharacterUpdate (
     val character: String,
     val ms: Int,
     val isAlive: Boolean,
-    val reputationAdjustment: Map<String, String>,
+    val reputationAdjustment: Map<String, String> = emptyMap(),
 )

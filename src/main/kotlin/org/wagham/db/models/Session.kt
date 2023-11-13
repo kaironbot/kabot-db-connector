@@ -14,6 +14,6 @@ data class Session(
     val duration: Int,
     val characters: List<CharacterUpdate>,
     val uid: Int,
-    @JsonProperty("game_date") val gameDate: GameDate,
+    @JsonProperty("game_date") val gameDate: GameDate? = null,
     val labels: Set<LabelStub> = setOf()
 )
