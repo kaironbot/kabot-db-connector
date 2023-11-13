@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "1.7.10"
     id("io.kotest") version "0.3.8"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.7.10"
     id("org.sonarqube") version "3.3"
     id("maven-publish")
     id("jacoco")
@@ -30,6 +31,7 @@ repositories {
 
 dependencies {
     implementation("org.litote.kmongo:kmongo-coroutine:4.7.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("io.kotest:kotest-runner-junit5-jvm:5.5.3")
     implementation("org.slf4j:slf4j-api:2.0.3")

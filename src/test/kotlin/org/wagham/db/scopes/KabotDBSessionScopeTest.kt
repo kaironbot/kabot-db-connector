@@ -2,6 +2,7 @@ package org.wagham.db.scopes
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo
 import io.kotest.matchers.comparables.shouldBeLessThanOrEqualTo
 import io.kotest.matchers.ints.shouldBeGreaterThan
@@ -9,11 +10,16 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.*
 import org.wagham.db.KabotMultiDBClient
+import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.models.MongoCredentials
+import org.wagham.db.models.dto.SessionOutcome
+import org.wagham.db.models.embed.LabelStub
 import org.wagham.db.utils.dateAtMidnight
 import org.wagham.db.utils.daysInBetween
+import org.wagham.db.uuid
 import java.util.*
+import kotlin.random.Random
 
 class KabotDBSessionScopeTest : StringSpec() {
 
@@ -110,6 +116,52 @@ class KabotDBSessionScopeTest : StringSpec() {
                 .sum() + 1L + daysInBetween(normalizedStartDate, normalizedEndDate)
 
             client.sessionScope.getTimePassedInGame(guildId, startDate, endDate) shouldBe inGameDays
+        }
+
+        "Can register a new session" {
+            val (master, character, dead) = client.charactersScope.getAllCharacters(guildId, CharacterStatus.active)
+                .toList()
+                .shuffled()
+                .take(3)
+
+            val title = uuid()
+            val characterOutcome = SessionOutcome(character.id, Random.nextInt(1, 6), false)
+            val deadOutcome = SessionOutcome(dead.id, 0, true)
+            val labels = setOf(LabelStub(uuid(), uuid()))
+
+            client.sessionScope.insertSession(
+                guildId = guildId,
+                masterId = master.id,
+                masterReward = 1,
+                title = title,
+                date = Date(),
+                outcomes = listOf(characterOutcome, deadOutcome),
+                labels = labels
+            ).committed shouldBe true
+
+            val session = client.sessionScope.getSessionsByTitle(guildId, title).first()
+            session.master shouldBe master.id
+            session.labels shouldBe labels
+            session.characters.map { it.character } shouldContainExactlyInAnyOrder listOf(character.id, dead.id)
+            session.characters.onEach {
+                if(it.character == character.id) {
+                    it.ms shouldBe characterOutcome.exp
+                    it.isAlive shouldBe !characterOutcome.isDead
+                } else {
+                    it.ms shouldBe deadOutcome.exp
+                    it.isAlive shouldBe !deadOutcome.isDead
+                }
+            }.size shouldBe 2
+
+            val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
+            updatedCharacter.ms() shouldBe (character.ms() + characterOutcome.exp)
+            updatedCharacter.status shouldBe character.status
+            updatedCharacter.errata shouldBe character.errata
+
+            val updatedDeadCharacter = client.charactersScope.getCharacter(guildId, dead.id)
+            updatedDeadCharacter.ms() shouldBe dead.ms()
+            updatedDeadCharacter.status shouldBe CharacterStatus.dead
+            updatedDeadCharacter.errata.size shouldBe (dead.errata.size + 1)
         }
 
     }
