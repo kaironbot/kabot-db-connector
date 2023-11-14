@@ -1,5 +1,10 @@
 package org.wagham.db.enums
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
 enum class NyxRoles {
-    MANAGE_SESSIONS
+    @SerialName("a") ADMIN,
+    @SerialName("mS") MANAGE_SESSIONS
 }
