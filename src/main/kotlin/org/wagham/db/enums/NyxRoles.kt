@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class NyxRoles {
     @SerialName("a") ADMIN,
-    @SerialName("mS") MANAGE_SESSIONS
+    @SerialName("mS") MANAGE_SESSIONS,
+    @SerialName("p") PLAYER
 }
