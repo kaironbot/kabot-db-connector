@@ -1,13 +1,14 @@
 package org.wagham.db.models
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.bson.codecs.pojo.annotations.BsonId
-import org.bson.types.ObjectId
 import org.wagham.db.models.embed.LabelStub
+import org.wagham.db.utils.JacksonLenientObjectIdDeserializer
 import java.util.Date
 
 data class Session(
-    @BsonId val id: ObjectId,
+    @JsonDeserialize(using = JacksonLenientObjectIdDeserializer::class) @BsonId val id: String,
     val master: String,
     val date: Date,
     val title: String,
@@ -15,5 +16,6 @@ data class Session(
     val characters: List<CharacterUpdate>,
     val uid: Int,
     @JsonProperty("game_date") val gameDate: GameDate? = null,
-    val labels: Set<LabelStub> = setOf()
+    val labels: Set<LabelStub> = setOf(),
+    val registeredBy: String? = null
 )
