@@ -87,6 +87,11 @@ class KabotDBSessionScopeTest : StringSpec() {
             client.sessionScope.getSessionByUid(guildId, session.uid) shouldBe session
         }
 
+        "Can get a session by Title" {
+            val session = client.sessionScope.getAllSessions(guildId).take(100).toList().random()
+            client.sessionScope.getSessionsByTitle(guildId, session.title).first() shouldBe session
+        }
+
         "Can get all the sessions for a player" {
             val master = client.sessionScope.getAllSessions(guildId).take(1000).toList().random().master
             val masterPlayer = client.charactersScope.getCharacter(guildId, master).player
@@ -129,17 +134,20 @@ class KabotDBSessionScopeTest : StringSpec() {
             val deadOutcome = SessionOutcome(dead.id, 0, true)
             val labels = setOf(LabelStub(uuid(), uuid()))
 
+            val sessionId = uuid()
             client.sessionScope.insertSession(
                 guildId = guildId,
+                sessionId = sessionId,
                 masterId = master.id,
                 masterReward = 1,
                 title = title,
                 date = Date(),
                 outcomes = listOf(characterOutcome, deadOutcome),
-                labels = labels
+                labels = labels,
+                registeredBy = uuid()
             ).committed shouldBe true
 
-            val session = client.sessionScope.getSessionsByTitle(guildId, title).first()
+            val session = client.sessionScope.getSessionById(guildId, sessionId).shouldNotBeNull()
             session.master shouldBe master.id
             session.labels shouldBe labels
             session.characters.map { it.character } shouldContainExactlyInAnyOrder listOf(character.id, dead.id)

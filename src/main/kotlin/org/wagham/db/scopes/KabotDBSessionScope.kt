@@ -1,12 +1,9 @@
 package org.wagham.db.scopes
 
-import com.mongodb.client.model.InsertOneOptions
 import com.mongodb.client.model.UpdateOptions
 import kotlinx.coroutines.flow.Flow
-import org.bson.types.ObjectId
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.coroutine.insertOne
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.enums.CollectionNames
@@ -23,6 +20,7 @@ import org.wagham.db.pipelines.sessions.TimePassedInGame
 import org.wagham.db.utils.daysInBetween
 import org.wagham.db.utils.isSuccessful
 import java.util.Date
+import java.util.UUID
 
 class KabotDBSessionScope(
     override val client: KabotMultiDBClient
@@ -35,6 +33,16 @@ class KabotDBSessionScope(
 
     suspend fun getSessionByUid(guildId: String, sessionUid: Int) =
         getMainCollection(guildId).findOne(Session::uid eq sessionUid)
+
+    /**
+     * Retrieves a [Session] by id.
+     *
+     * @param guildId the guild id.
+     * @param sessionId the id of the session to retrieve.
+     * @return a [Session], if one exists with that id, or null.
+     */
+    suspend fun getSessionById(guildId: String, sessionId: String): Session? =
+        getMainCollection(guildId).findOne(Session::id eq sessionId)
 
     /**
      * Retrieves all the [Session]s with a certain title in a guild.
@@ -72,27 +80,31 @@ class KabotDBSessionScope(
 
     /**
      * Registers a new session in a guild. When doing so, it updates all the character updating the status (if the
-     * character died in the session, with the new exp and with the last played date.
+     * character died in the session), the new exp and the last played date.
      * It also updated the character of the master who mastered the session changing its last mastered date and adding
      * an exp prize, if any.
      *
      * @param guildId the id of the guild.
+     * @param sessionId the id of the session. If null, a random UUID will be generated.
      * @param masterId the id of the character of the master of the session.
      * @param masterReward an exp reward for the master.
      * @param title the title of the session.
      * @param date the date of the session.
      * @param outcomes a [List] of [SessionOutcome], one for each participating character.
      * @param labels a [Set] of [LabelStub] to assign to the session.
+     * @param registeredBy the id of the user that registered the session.
      * @return a [TransactionResult]
      */
     suspend fun insertSession(
         guildId: String,
+        sessionId: String?,
         masterId: String,
         masterReward: Int,
         title: String,
         date: Date,
         outcomes: List<SessionOutcome>,
-        labels: Set<LabelStub>
+        labels: Set<LabelStub>,
+        registeredBy: String
     ): TransactionResult = client.transaction(guildId) { session ->
         val db = client.getGuildDb(guildId)
         val newUid = getMainCollection(guildId).find().descendingSort(Session::uid).first()?.uid?.plus(1) ?: 0
@@ -127,7 +139,7 @@ class KabotDBSessionScope(
             )
         ).isSuccessful()
 
-        val sId = ObjectId.get()
+        val sId = sessionId ?: UUID.randomUUID().toString()
         val insertSessionStep = getMainCollection(guildId).updateOne(
             session,
             Session::id eq sId,
@@ -141,7 +153,8 @@ class KabotDBSessionScope(
                 characters = outcomes.map {
                     CharacterUpdate(it.characterId, it.exp, !it.isDead)
                 },
-                labels = labels
+                labels = labels,
+                registeredBy = registeredBy
             ),
             UpdateOptions().upsert(true)
         ).upsertedId != null
