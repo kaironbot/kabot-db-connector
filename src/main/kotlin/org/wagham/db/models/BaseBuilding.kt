@@ -1,7 +1,5 @@
 package org.wagham.db.models
 
-import com.fasterxml.jackson.annotation.JsonProperty
-
 interface BaseBuilding {
     val name: String
     val type: String
