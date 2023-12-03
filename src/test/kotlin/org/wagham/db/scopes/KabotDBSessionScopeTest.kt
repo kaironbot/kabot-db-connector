@@ -3,6 +3,7 @@ package org.wagham.db.scopes
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo
 import io.kotest.matchers.comparables.shouldBeLessThanOrEqualTo
 import io.kotest.matchers.ints.shouldBeGreaterThan
@@ -123,7 +124,8 @@ class KabotDBSessionScopeTest : StringSpec() {
             client.sessionScope.getTimePassedInGame(guildId, startDate, endDate) shouldBe inGameDays
         }
 
-        "Can register a new session" {
+        "Can register a new session and delete it" {
+            val responsible = client.playersScope.getAllPlayers(guildId).toList().random()
             val (master, character, dead) = client.charactersScope.getAllCharacters(guildId, CharacterStatus.active)
                 .toList()
                 .shuffled()
@@ -133,22 +135,27 @@ class KabotDBSessionScopeTest : StringSpec() {
             val characterOutcome = SessionOutcome(character.id, Random.nextInt(1, 6), false)
             val deadOutcome = SessionOutcome(dead.id, 0, true)
             val labels = setOf(LabelStub(uuid(), uuid()))
+            val masterReward = 1
+            val date = Date()
 
             val sessionId = uuid()
             client.sessionScope.insertSession(
                 guildId = guildId,
                 sessionId = sessionId,
                 masterId = master.id,
-                masterReward = 1,
+                masterReward = masterReward,
                 title = title,
-                date = Date(),
+                date = date,
                 outcomes = listOf(characterOutcome, deadOutcome),
                 labels = labels,
-                registeredBy = uuid()
+                registeredBy = responsible.playerId
             ).committed shouldBe true
 
             val session = client.sessionScope.getSessionById(guildId, sessionId).shouldNotBeNull()
             session.master shouldBe master.id
+            client.charactersScope.getCharacter(guildId, master.id).let {
+                it.masterMS shouldBe (master.masterMS + masterReward)
+            }
             session.labels shouldBe labels
             session.characters.map { it.character } shouldContainExactlyInAnyOrder listOf(character.id, dead.id)
             session.characters.onEach {
@@ -170,6 +177,30 @@ class KabotDBSessionScopeTest : StringSpec() {
             updatedDeadCharacter.ms() shouldBe dead.ms()
             updatedDeadCharacter.status shouldBe CharacterStatus.dead
             updatedDeadCharacter.errata.size shouldBe (dead.errata.size + 1)
+
+            client.sessionScope.deleteSession(guildId, sessionId, masterReward).committed shouldBe true
+
+            client.charactersScope.getCharacter(guildId, master.id).let {
+                it.masterMS shouldBe master.masterMS
+            }
+
+            client.charactersScope.getCharacter(guildId, character.id).let {
+                it.ms() shouldBe character.ms()
+                it.status shouldBe character.status
+                it.errata shouldContainExactlyInAnyOrder character.errata
+            }
+            client.charactersScope.getCharacter(guildId, dead.id).let {
+                it.ms() shouldBe dead.ms()
+                it.status shouldBe dead.status
+                it.errata shouldContainExactlyInAnyOrder dead.errata
+            }
+
+        }
+
+        "Can get all the sessions with the responsible player" {
+            client.sessionScope.getSessionsWithResponsible(guildId).toList().shouldNotBeEmpty().any {
+                it.registeredBy != null
+            } shouldBe true
         }
 
     }

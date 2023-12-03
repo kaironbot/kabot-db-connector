@@ -8,14 +8,12 @@ import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.enums.CollectionNames
 import org.wagham.db.exceptions.ResourceNotFoundException
-import org.wagham.db.models.Character
-import org.wagham.db.models.CharacterUpdate
-import org.wagham.db.models.Errata
-import org.wagham.db.models.Session
+import org.wagham.db.models.*
 import org.wagham.db.models.client.TransactionResult
 import org.wagham.db.models.dto.SessionOutcome
 import org.wagham.db.models.embed.LabelStub
 import org.wagham.db.pipelines.sessions.PlayerMasteredSessions
+import org.wagham.db.pipelines.sessions.SessionWithResponsible
 import org.wagham.db.pipelines.sessions.TimePassedInGame
 import org.wagham.db.utils.daysInBetween
 import org.wagham.db.utils.isSuccessful
@@ -67,6 +65,19 @@ class KabotDBSessionScope(
     fun getAllMasteredSessions(guildId: String, player: String) =
         getMainCollection(guildId)
             .aggregate<PlayerMasteredSessions>(PlayerMasteredSessions.getPipeline(player))
+            .toFlow()
+
+    /**
+     * Returns all the [Session] with the complete [Player] as responsible, with pagination support.
+     *
+     * @param guildId the id of the guild where to get the sessions.
+     * @param skip pagination parameter: the number of sessions already provided.
+     * @param limit pagination parameter: the number of session to include in one page.
+     * @return a [Flow] of [GenericSession] of [Player].
+     */
+    fun getSessionsWithResponsible(guildId: String, skip: Int? = null, limit: Int? = null): Flow<GenericSession<Player>> =
+        getMainCollection(guildId)
+            .aggregate<GenericSession<Player>>(SessionWithResponsible.getPipeline(skip, limit))
             .toFlow()
 
     suspend fun getTimePassedInGame(guildId: String, startDate: Date, endDate: Date) =
@@ -159,5 +170,64 @@ class KabotDBSessionScope(
             UpdateOptions().upsert(true)
         ).upsertedId != null
         insertSessionStep && playersUpdateStep && masterUpdateStep
+    }
+
+    /**
+     * Deletes a session registered in the system, applying also a rollback of all the side effects associated to it:
+     * - It removes the exp prize for the master.
+     * - It removes the exp prize for each player.
+     * - If a player was marked as dead, the entry will be removed from the [Character.errata].
+     * - If a player was marked as dead and its current status is dead, it will put the status as [CharacterStatus.active].
+     * This method will NOT update the [Character.lastPlayed] and [Character.lastMastered] fields.
+     *
+     * @param guildId the id of the guild where to remove the session.
+     * @param sessionId the id of the session to remove.
+     * @param masterReward the exp assigned to master for playing this session.
+     * @return a [TransactionResult].
+     */
+    suspend fun deleteSession(
+        guildId: String,
+        sessionId: String,
+        masterReward: Int
+    ): TransactionResult = client.transaction(guildId) { mongoSession ->
+        val db = client.getGuildDb(guildId)
+        val session = getMainCollection(guildId).findOne(mongoSession, Session::id eq sessionId)
+            ?: throw IllegalArgumentException("Cannot the session with id $sessionId")
+
+        // Removing master reward
+        val masterCharacter = db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).findOne(
+            mongoSession,
+            Character::id eq session.master
+        ) ?: throw ResourceNotFoundException(session.master, "Characters")
+        val masterUpdateStep = db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).updateOne(
+            mongoSession,
+            Character::id eq session.master,
+            masterCharacter.copy(
+                masterMS = masterCharacter.masterMS - masterReward,
+            )
+        ).isSuccessful()
+
+        val characterStep = session.characters.all {
+            val character = db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).findOne(
+                mongoSession,
+                Character::id eq it.character
+            ) ?: throw ResourceNotFoundException(it.character, "Characters")
+            val updatedCharacter = character.copy(
+                sessionMS = character.sessionMS - it.ms,
+                status = if(character.status == CharacterStatus.dead && !it.isAlive) CharacterStatus.active else character.status,
+                errata = character.errata.filter { errata ->
+                    it.isAlive || errata.date != session.date
+                }
+            )
+            db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).updateOne(
+                mongoSession,
+                Character::id eq it.character,
+                updatedCharacter
+            ).isSuccessful()
+        }
+
+        val deletionStep = getMainCollection(guildId).deleteOne(Session::id eq sessionId).deletedCount == 1L
+
+        masterUpdateStep && characterStep && deletionStep
     }
 }

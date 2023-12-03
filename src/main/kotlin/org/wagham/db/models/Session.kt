@@ -7,7 +7,7 @@ import org.wagham.db.models.embed.LabelStub
 import org.wagham.db.utils.JacksonLenientObjectIdDeserializer
 import java.util.Date
 
-data class Session(
+data class GenericSession<R>(
     @JsonDeserialize(using = JacksonLenientObjectIdDeserializer::class) @BsonId val id: String,
     val master: String,
     val date: Date,
@@ -17,5 +17,7 @@ data class Session(
     val uid: Int,
     @JsonProperty("game_date") val gameDate: GameDate? = null,
     val labels: Set<LabelStub> = setOf(),
-    val registeredBy: String? = null
+    val registeredBy: R? = null
 )
+
+typealias Session = GenericSession<String>

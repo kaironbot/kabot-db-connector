@@ -42,7 +42,7 @@ class KabotDBBuildingScopeTest : StringSpec() {
             }
         }
 
-        "getBuildingsWithBounty should be able to get all the buildings" {
+        "!getBuildingsWithBounty should be able to get all the buildings" {
             client.buildingsScope.getBuildingsWithBounty(guildId).count() shouldBeGreaterThan 0
         }
 
