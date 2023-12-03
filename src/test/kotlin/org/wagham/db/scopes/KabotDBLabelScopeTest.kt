@@ -81,6 +81,14 @@ class KabotDBLabelScopeTest : StringSpec() {
             client.labelsScope.getLabels(guildId, listOf(label1.id, label2.id), labelType = LabelType.ITEM).count() shouldBe 0
         }
 
+        "Can retrieve labels by name" {
+            val label = Label(uuid(), uuid(), setOf(LabelType.CHARACTER))
+            client.labelsScope.createOrUpdateLabel(guildId, label) shouldBe true
+
+            client.labelsScope.getLabelsByName(guildId, listOf(label.name, uuid())).toList() shouldContainExactlyInAnyOrder listOf(label)
+
+        }
+
     }
 
 }

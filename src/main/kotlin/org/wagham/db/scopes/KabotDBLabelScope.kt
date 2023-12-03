@@ -1,6 +1,7 @@
 package org.wagham.db.scopes
 
 import com.mongodb.client.model.UpdateOptions
+import kotlinx.coroutines.flow.Flow
 import org.litote.kmongo.contains
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
@@ -41,6 +42,18 @@ class KabotDBLabelScope(
                     Label::types contains labelType
                 }
             ).toTypedArray()
+        ).toFlow()
+
+    /**
+     * Retrieves all the labels which name is in the list passed as parameter.
+     *
+     * @param guildId the id of the guild where to retrieve the labels.
+     * @param labelNames a [List] of label names.
+     * @return a [Flow] of [Label]s
+     */
+    fun getLabelsByName(guildId: String, labelNames: List<String>): Flow<Label> =
+        getMainCollection(guildId).find(
+            Label::name `in` labelNames,
         ).toFlow()
 
     suspend fun getLabel(guildId: String, labelId: String) =
