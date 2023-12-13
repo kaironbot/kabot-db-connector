@@ -1,8 +1,12 @@
 package org.wagham.db
 
+import com.mongodb.MongoCommandException
 import com.mongodb.reactivestreams.client.ClientSession
 import io.kotest.common.runBlocking
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.fold
+import kotlinx.coroutines.flow.retry
 import org.litote.kmongo.coroutine.*
 import org.litote.kmongo.reactivestreams.KMongo
 import org.wagham.db.exceptions.InvalidGuildException
@@ -61,22 +65,27 @@ class KabotMultiDBClient(
 
     fun getAllGuildsId(): Set<String> = clientCache.keys
 
-    suspend fun transaction(guildId: String, block: suspend (ClientSession) -> Boolean): TransactionResult {
+    suspend fun transaction(guildId: String, retries: Long = 3, block: suspend (ClientSession) -> Boolean): TransactionResult {
         if (clientCache[guildId] == null) throw InvalidGuildException(guildId)
-        return clientCache[guildId]!!.startSession().use {
-            it.startTransaction()
-            try {
-                if (block(it)) {
-                    it.commitTransactionAndAwait()
-                    TransactionResult(true)
+        return flow {
+            clientCache.getValue(guildId).startSession().use {
+                it.startTransaction()
+                try {
+                    if (block(it)) {
+                        it.commitTransactionAndAwait()
+                        emit(TransactionResult(true))
+                    }
+                    else throw TransactionAbortedException()
+                } catch (e: Exception) {
+                    if(e is MongoCommandException) {
+                        throw e
+                    } else {
+                        emit(TransactionResult(false, e))
+                    }
                 }
-                else throw TransactionAbortedException()
-            } catch (e: Exception) {
-                TransactionResult(
-                    false,
-                    e
-                )
             }
-        }
+        }.retry(retries) {
+            it is MongoCommandException && it.errorCode == 112
+        }.firstOrNull() ?: TransactionResult(false, Exception("Transaction failed: maximum number of retries exceeded"))
     }
 }
