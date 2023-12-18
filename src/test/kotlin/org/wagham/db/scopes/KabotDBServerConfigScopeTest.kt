@@ -2,10 +2,10 @@ package org.wagham.db.scopes
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.wagham.db.KabotMultiDBClient
+import org.wagham.db.enums.BuildingRestrictionType
 import org.wagham.db.enums.NyxRoles
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.models.MongoCredentials
@@ -13,6 +13,7 @@ import org.wagham.db.models.NyxConfig
 import org.wagham.db.models.ServerConfig
 import org.wagham.db.models.embed.EventConfig
 import org.wagham.db.uuid
+import kotlin.random.Random
 
 class KabotDBServerConfigScopeTest : StringSpec() {
 
@@ -40,12 +41,19 @@ class KabotDBServerConfigScopeTest : StringSpec() {
         val testChannels = EventConfig(true, setOf("1234"))
 
         "Should be able to set a config and retrieve it" {
-            val config = ServerConfig(
-                id = "serverConfig",
-                adminRoleId = uuid(),
-                channels = mapOf(testChannelIdKey to testChannelId),
-                eventChannels = mapOf(testCommand to testChannels)
-            )
+            val config = try {
+                val currentConfig = client.serverConfigScope.getGuildConfig(guildId)
+                currentConfig.copy(
+                    buildingRestrictions = mapOf(BuildingRestrictionType.TYPE_RESTRICTION to Random.nextInt(0, 100000000))
+                )
+            } catch (e: Exception) {
+                ServerConfig(
+                    id = "serverConfig",
+                    adminRoleId = uuid(),
+                    channels = mapOf(testChannelIdKey to testChannelId),
+                    eventChannels = mapOf(testCommand to testChannels)
+                )
+            }
             client.serverConfigScope.setGuildConfig(guildId, config) shouldBe true
             client.serverConfigScope.getGuildConfig(guildId) shouldBe config
         }

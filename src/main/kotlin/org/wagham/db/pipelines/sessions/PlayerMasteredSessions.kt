@@ -21,7 +21,7 @@ data class PlayerMasteredSessions(
     val duration: Int,
     val characters: List<CharacterUpdate>,
     val uid: Int,
-    @JsonProperty("game_date") val gameDate: GameDate,
+    @JsonProperty("game_date") val gameDate: GameDate? = null,
     val masterCharacter: Character,
     val unwindCounter: Int,
     val labels: Set<LabelStub> = setOf(),
