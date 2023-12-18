@@ -70,17 +70,19 @@ class KabotMultiDBClient(
         return flow {
             clientCache.getValue(guildId).startSession().use {
                 it.startTransaction()
-                try {
+                runCatching {
                     if (block(it)) {
                         it.commitTransactionAndAwait()
-                        emit(TransactionResult(true))
+                        TransactionResult(true)
                     }
                     else throw TransactionAbortedException()
-                } catch (e: Exception) {
-                    if(e is MongoCommandException) {
-                        throw e
-                    } else {
-                        emit(TransactionResult(false, e))
+                }.onSuccess { result ->
+                    emit(result)
+                }.onFailure { e ->
+                    when(e) {
+                        is MongoCommandException -> throw e
+                        is Exception -> emit(TransactionResult(false, e))
+                        else -> emit(TransactionResult(false, Exception("Something went wrong")))
                     }
                 }
             }
