@@ -15,7 +15,7 @@ jobs:
       - name: Setup JDK
         uses: actions/setup-java@v2
         with:
-          java-version: '17'
+          java-version: '19'
           distribution: 'adopt'
 
       - name: Test

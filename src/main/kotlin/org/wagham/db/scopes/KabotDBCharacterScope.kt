@@ -1,10 +1,9 @@
 package org.wagham.db.scopes
 
+import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.model.Updates
 import com.mongodb.reactivestreams.client.ClientSession
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
 import org.bson.BsonDocument
 import org.bson.Document
 import org.litote.kmongo.*
@@ -14,10 +13,12 @@ import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.enums.CollectionNames
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.*
+import org.wagham.db.models.client.TransactionResult
 import org.wagham.db.models.creation.CharacterCreationData
 import org.wagham.db.models.embed.ProficiencyStub
 import org.wagham.db.models.responses.ActiveCharacterOrAllActive
 import org.wagham.db.pipelines.characters.CharacterWithPlayer
+import org.wagham.db.utils.isSuccessful
 import java.util.*
 
 
@@ -229,13 +230,14 @@ class KabotDBCharacterScope(
             .aggregate<CharacterWithPlayer>(CharacterWithPlayer.getPipeline(status))
             .toFlow()
 
-    suspend fun createCharacter(guildId: String, playerId: String, playerName: String, data: CharacterCreationData) =
+    suspend fun createCharacter(guildId: String, playerId: String, playerName: String, data: CharacterCreationData): TransactionResult =
         client.transaction(guildId) { session ->
             val playerExistsOrIsCreated = client.playersScope.getPlayer(session, guildId, playerId) ?:
                 client.playersScope.createPlayer(session, guildId, playerId, playerName)
             val startingExp = client.utilityScope.getExpTable(guildId).levelToExp(data.startingLevel)
-            getMainCollection(guildId).insertOne(
+            val characterCreated = getMainCollection(guildId).updateOne(
                 session,
+                Character::id eq "$playerId:${data.name}",
                 Character(
                     id = "$playerId:${data.name}",
                     name = data.name,
@@ -253,9 +255,31 @@ class KabotDBCharacterScope(
                             date = Date()
                         )
                     )
+                ),
+                UpdateOptions().upsert(true)
+            ).isSuccessful()
+            characterCreated && playerExistsOrIsCreated != null
+        }
+
+    /**
+     * Adds a new [Errata] to a [Character], updating its status and exp if needed.
+     *
+     * @param guildId the id of the guild where to update the character.
+     * @param characterId the id of the [Character] to update.
+     * @param errata the [Errata] to add.
+     * @return a [TransactionResult].
+     */
+    suspend fun addErrata(guildId: String, characterId: String, errata: Errata): TransactionResult =
+        client.transaction(guildId) { clientSession ->
+            val character = getCharacter(clientSession, guildId, characterId)
+            getMainCollection(guildId).updateOne(
+                clientSession,
+                Character::id eq characterId,
+                character.copy(
+                    errataMS = character.errataMS + errata.ms,
+                    status = errata.statusChange ?: character.status,
+                    errata = listOf(errata) + character.errata
                 )
-            )
-            getCharacter(session, guildId, "$playerId:${data.name}")
-            playerExistsOrIsCreated != null
+            ).isSuccessful()
         }
 }

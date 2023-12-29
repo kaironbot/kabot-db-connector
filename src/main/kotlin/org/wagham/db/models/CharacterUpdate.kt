@@ -1,8 +1,8 @@
 package org.wagham.db.models
 
-import org.wagham.db.enums.CharacterStatus
-import java.util.*
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class CharacterUpdate (
     val character: String,
     val ms: Int,

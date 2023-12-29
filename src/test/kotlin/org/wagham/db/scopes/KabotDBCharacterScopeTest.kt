@@ -18,6 +18,7 @@ import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.exceptions.TransactionAbortedException
 import org.wagham.db.models.Building
+import org.wagham.db.models.Errata
 import org.wagham.db.models.MongoCredentials
 import org.wagham.db.models.creation.CharacterCreationData
 import org.wagham.db.models.embed.LabelStub
@@ -577,6 +578,39 @@ class KabotDBCharacterScopeTest : StringSpec() {
                 character.age shouldBe null
                 character.territory shouldBe null
             }
+        }
+
+        "Should be able of updating a character ms and status using an errata" {
+            val character = client.charactersScope.getAllCharacters(guildId).take(1000).toList().random()
+
+            val errata = Errata(
+                ms = Random.nextInt(1, 10),
+                date = Date(),
+                statusChange = CharacterStatus.entries.random()
+            )
+
+            client.charactersScope.addErrata(guildId, character.id, errata).committed shouldBe true
+
+            val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
+            updatedCharacter.errataMS shouldBe (character.errataMS + errata.ms)
+            updatedCharacter.status shouldBe errata.statusChange
+            updatedCharacter.errata shouldContain errata
+        }
+
+        "Should be able of updating a character ms using an errata" {
+            val character = client.charactersScope.getAllCharacters(guildId).take(1000).toList().random()
+
+            val errata = Errata(
+                ms = Random.nextInt(1, 10),
+                date = Date()
+            )
+
+            client.charactersScope.addErrata(guildId, character.id, errata).committed shouldBe true
+
+            val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
+            updatedCharacter.errataMS shouldBe (character.errataMS + errata.ms)
+            updatedCharacter.status shouldBe character.status
+            updatedCharacter.errata shouldContain errata
         }
 
     }
