@@ -2,6 +2,8 @@ package org.wagham.db.models
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.bson.codecs.pojo.annotations.BsonId
 import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.models.embed.LabelStub
@@ -10,6 +12,7 @@ import org.wagham.db.utils.JacksonLenientCharacterStateDeserializer
 import org.wagham.db.utils.JacksonLenientDndClassDeserializer
 import java.util.Date
 
+@Serializable
 data class Character (
     @BsonId val id: String,
     val name: String,
@@ -23,9 +26,9 @@ data class Character (
     val errataMS: Int = 0,
     val sessionMS: Int = 0,
     val errata: List<Errata> = emptyList(),
-    val created: Date? = null,
-    val lastPlayed: Date? = null,
-    val lastMastered: Date? = null,
+    @Contextual val created: Date? = null,
+    @Contextual val lastPlayed: Date? = null,
+    @Contextual val lastMastered: Date? = null,
     val age: Int? = null,
     val reputation: Map<String, Int>? = emptyMap(),
     val buildings: Map<String, List<Building>> = emptyMap(),

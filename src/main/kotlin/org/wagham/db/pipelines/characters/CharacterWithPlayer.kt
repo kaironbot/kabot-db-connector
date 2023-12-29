@@ -3,6 +3,8 @@ package org.wagham.db.pipelines.characters
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.mongodb.client.model.UnwindOptions
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.bson.Document
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.conversions.Bson
@@ -20,6 +22,7 @@ import org.wagham.db.utils.JacksonLenientCharacterStateDeserializer
 import org.wagham.db.utils.JacksonLenientDndClassDeserializer
 import java.util.*
 
+@Serializable
 data class CharacterWithPlayer (
     @BsonId val id: String,
     val name: String,
@@ -33,9 +36,9 @@ data class CharacterWithPlayer (
     val errataMS: Int,
     val sessionMS: Int,
     val errata: List<Errata>,
-    val created: Date?,
-    val lastPlayed: Date?,
-    val lastMastered: Date?,
+    @Contextual val created: Date?,
+    @Contextual val lastPlayed: Date?,
+    @Contextual val lastMastered: Date?,
     val reputation: Map<String, Int>,
     val buildings: Map<String, List<Building>> = mapOf(),
     val inventory: Map<String, Int> = mapOf(),
