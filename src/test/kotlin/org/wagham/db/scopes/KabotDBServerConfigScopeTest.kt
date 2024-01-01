@@ -67,7 +67,7 @@ class KabotDBServerConfigScopeTest : StringSpec() {
         "Should be able to set a nyx Config and retrieve it" {
             val config = NyxConfig(
                 id = "nyxConfig",
-                roleConfig = mapOf(uuid() to NyxRoles.MANAGE_SESSIONS)
+                roleConfig = mapOf(uuid() to setOf(NyxRoles.MANAGE_SESSIONS))
             )
             client.serverConfigScope.setNyxConfig(guildId, config) shouldBe true
             client.serverConfigScope.getNyxConfig(guildId) shouldBe config
