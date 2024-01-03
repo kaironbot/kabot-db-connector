@@ -167,6 +167,7 @@ class KabotDBItemScopeTest : StringSpec() {
 
             client.itemsScope.createOrUpdateItems(guildId, listOf(ingredient, item1, item2)).committed shouldBe true
             client.itemsScope.isMaterialOf(guildId, ingredient).toList() shouldContainExactlyInAnyOrder listOf(item1, item2)
+            client.itemsScope.isMaterialOf(guildId, ingredient.name).toList() shouldContainExactlyInAnyOrder listOf(item1, item2)
         }
 
         "Can get all the items with a specified id" {

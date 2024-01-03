@@ -100,11 +100,19 @@ class KabotDBItemScope(
      * @param item the [Item] that is an ingredient.
      * @return a [Flow] of [Item] where the one passes as parameter is an ingredient of at least one recipe.
      */
-    fun isMaterialOf(guildId: String, item: Item) =
-        getMainCollection(guildId)
-            .find("{\"craft.materials.${item.name}\": { \$exists : true }}")
-            .toFlow()
+    fun isMaterialOf(guildId: String, item: Item): Flow<Item> = isMaterialOf(guildId, item.name)
 
+    /**
+     * Retrieves all the [Item]s where the one passed as parameter is an ingredient of at least one recipe.
+     *
+     * @param guildId the id of the guild where to search the items.
+     * @param itemId the id of the [Item] that is an ingredient.
+     * @return a [Flow] of [Item] where the one passes as parameter is an ingredient of at least one recipe.
+     */
+    fun isMaterialOf(guildId: String, itemId: String): Flow<Item> =
+        getMainCollection(guildId)
+            .find("{\"craft.materials.$itemId\": { \$exists : true }}")
+            .toFlow()
 
     suspend fun deleteItems(guildId: String, itemsId: List<String>) =
         getMainCollection(guildId).deleteMany(
