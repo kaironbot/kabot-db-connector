@@ -169,5 +169,10 @@ class KabotDBItemScopeTest : StringSpec() {
             client.itemsScope.isMaterialOf(guildId, ingredient).toList() shouldContainExactlyInAnyOrder listOf(item1, item2)
         }
 
+        "Can get all the items with a specified id" {
+            val items = client.itemsScope.getAllItems(guildId).take(100).toList()
+            client.itemsScope.getItems(guildId, items.map { it.name }.toSet()).toList() shouldContainExactlyInAnyOrder items
+        }
+
     }
 }

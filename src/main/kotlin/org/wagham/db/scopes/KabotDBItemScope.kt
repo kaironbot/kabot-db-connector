@@ -23,11 +23,27 @@ class KabotDBItemScope(
     override fun getMainCollection(guildId: String): CoroutineCollection<Item> =
         client.getGuildDb(guildId).getCollection(collectionName)
 
-    fun getAllItems(guildId: String) =
-        getMainCollection(guildId).find().toFlow()
+    /**
+     * Retrieves all [Item]s in a guild.
+     *
+     * @param guildId the id of the guild from which to take the items.
+     * @return a [Flow] of [Item]s.
+     */
+    fun getAllItems(guildId: String): Flow<Item> = getMainCollection(guildId).find().toFlow()
 
     /**
-     * Returns all the items in a guild that have all the provided labels.
+     * Retrieves all [Item]s in a guild which id is among the one specified in [ids]. If [ids] is an empty set, then
+     * an empty flow is returned.
+     *
+     * @param guildId the id of the guild from which to retrieve the items.
+     * @param ids a [Set] containing the ids of the items to retrieve.
+     * @return a [Flow] of [Item].
+     */
+    fun getItems(guildId: String, ids: Set<String>): Flow<Item> =
+        getMainCollection(guildId).find(Item::name `in` ids).toFlow()
+
+    /**
+     * Returns all the [Item]s in a guild that have all the provided labels.
      *
      * @param guildId the guild id.
      * @param labels a [List] of [LabelStub].
