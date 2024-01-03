@@ -1,5 +1,8 @@
 package org.wagham.db.models.embed
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class CraftRequirement(
     val timeRequired: Long? = null,
     val minQuantity: Int? = null,
