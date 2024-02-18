@@ -29,8 +29,23 @@ class KabotDBSessionScope(
     override fun getMainCollection(guildId: String): CoroutineCollection<Session> =
         client.getGuildDb(guildId).getCollection(collectionName)
 
-    suspend fun getSessionByUid(guildId: String, sessionUid: Int) =
+    /**
+     * Retrieves a [Session] by uid, if such a session exists.
+     *
+     * @param guildId the guild id.
+     * @param sessionUid the [Session] uid.
+     * @return the [Session] if one exists with such uid and null otherwise.
+     */
+    suspend fun getSessionByUid(guildId: String, sessionUid: Int): Session? =
         getMainCollection(guildId).findOne(Session::uid eq sessionUid)
+
+    /**
+     * Retrieves the number of [Session]s in a guild.
+     *
+     * @param guildId the id of the guild.
+     * @return the number of [Session]s registered.
+     */
+    suspend fun sessionsCount(guildId: String): Long = getMainCollection(guildId).countDocuments()
 
     /**
      * Retrieves a [Session] by id.
