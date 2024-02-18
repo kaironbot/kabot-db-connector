@@ -2,6 +2,7 @@ package org.wagham.db.scopes
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo
@@ -14,6 +15,7 @@ import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.models.MongoCredentials
+import org.wagham.db.models.Session
 import org.wagham.db.models.dto.SessionOutcome
 import org.wagham.db.models.embed.LabelStub
 import org.wagham.db.utils.dateAtMidnight
@@ -42,12 +44,20 @@ class KabotDBSessionScopeTest : StringSpec() {
 
     private fun StringSpec.testSessions() {
 
+        lateinit var allSessions: List<Session>
+
+        beforeSpec {
+            allSessions = client.sessionScope.getAllSessions(guildId).toList()
+        }
+
         "getAllSessions should be able to get all the sessions" {
-            client.sessionScope.getAllSessions(guildId).count() shouldBeGreaterThan 0
+            val sessionsCount = client.sessionScope.sessionsCount(guildId)
+            allSessions.size shouldBeGreaterThan 0
+            sessionsCount shouldBe allSessions.size
         }
 
         "getAllSessions should be able to get all the sessions after a certain date" {
-            val startingDate = client.sessionScope.getAllSessions(guildId).take(1000).toList().random().date
+            val startingDate = allSessions.take(1000).random().date
             client.sessionScope
                 .getAllSessions(guildId, startDate = startingDate)
                 .onEach {
@@ -56,7 +66,7 @@ class KabotDBSessionScopeTest : StringSpec() {
         }
 
         "getAllSessions should be able to get all the sessions before a certain date" {
-            val endDate = client.sessionScope.getAllSessions(guildId).take(1000).toList().random().date
+            val endDate = allSessions.take(1000).random().date
             client.sessionScope
                 .getAllSessions(guildId, endDate = endDate)
                 .onEach {
@@ -65,7 +75,7 @@ class KabotDBSessionScopeTest : StringSpec() {
         }
 
         "getAllSessions should be able to get all the sessions between two dates" {
-            val startingDate = client.sessionScope.getAllSessions(guildId).take(1000).toList().random().date
+            val startingDate = allSessions.take(1000).random().date
             val endDate = client.sessionScope.getAllSessions(guildId).filter {
                 it.date > startingDate
             }.take(1000).toList().random().date
@@ -84,17 +94,17 @@ class KabotDBSessionScopeTest : StringSpec() {
         }
 
         "Can get a session by UID" {
-            val session = client.sessionScope.getAllSessions(guildId).take(100).toList().random()
+            val session = allSessions.random()
             client.sessionScope.getSessionByUid(guildId, session.uid) shouldBe session
         }
 
         "Can get a session by Title" {
-            val session = client.sessionScope.getAllSessions(guildId).take(100).toList().random()
+            val session = allSessions.random()
             client.sessionScope.getSessionsByTitle(guildId, session.title).first() shouldBe session
         }
 
         "Can get all the sessions for a player" {
-            val master = client.sessionScope.getAllSessions(guildId).take(1000).toList().random().master
+            val master = allSessions.random().master
             val masterPlayer = client.charactersScope.getCharacter(guildId, master).player
             client.sessionScope.getAllMasteredSessions(guildId, masterPlayer)
                 .onEach {
@@ -105,7 +115,7 @@ class KabotDBSessionScopeTest : StringSpec() {
 
         "Can calculate the days passed in-game between two dates" {
             val calendar = Calendar.getInstance()
-            val startDate = client.sessionScope.getAllSessions(guildId).take(1000).toList().random().date
+            val startDate = allSessions.random().date
             calendar.time = startDate
             calendar.add(Calendar.DAY_OF_WEEK, +7)
             val endDate = calendar.time
@@ -198,9 +208,12 @@ class KabotDBSessionScopeTest : StringSpec() {
         }
 
         "Can get all the sessions with the responsible player" {
-            client.sessionScope.getSessionsWithResponsible(guildId).toList().shouldNotBeEmpty().any {
-                it.registeredBy != null
-            } shouldBe true
+            val limit = 20
+            val sessions = client.sessionScope.getSessionsWithResponsible(guildId, null, limit).toList()
+            sessions.size shouldBe limit
+            val firstPage = client.sessionScope.getSessionsWithResponsible(guildId, null, limit/2).toList()
+            val secondPage = client.sessionScope.getSessionsWithResponsible(guildId, limit/2, limit/2).toList()
+            (firstPage + secondPage).map { it.id } shouldContainExactly sessions.map { it.id }
         }
 
     }

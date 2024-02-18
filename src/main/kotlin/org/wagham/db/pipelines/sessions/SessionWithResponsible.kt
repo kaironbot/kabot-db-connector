@@ -9,7 +9,7 @@ object SessionWithResponsible {
 
     fun getPipeline(skip: Int?, limit: Int?): List<Bson> =
         listOfNotNull(
-            sort(descending(Session::date)),
+            sort(descending(Session::date, Session::title)),
             skip?.let { skip(it) },
             limit?.let { limit(it) },
             lookup(
