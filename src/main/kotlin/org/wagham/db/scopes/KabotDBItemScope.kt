@@ -89,7 +89,10 @@ class KabotDBItemScope(
                 val updateResult = itemsToUpdate.all {
                     collection.updateOne(Item::name eq it.name, it).modifiedCount == 1L
                 }
-                creationResult && updateResult
+                mapOf(
+                    "itemCreated" to creationResult,
+                    "itemUpdated" to updateResult
+                )
             }
         }
 

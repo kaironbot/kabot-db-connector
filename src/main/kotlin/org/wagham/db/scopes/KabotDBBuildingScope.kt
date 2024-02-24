@@ -40,7 +40,7 @@ class KabotDBBuildingScope(
                     )
                     result.modifiedCount + (1.takeIf { result.upsertedId != null } ?: 0)
                 }.toInt()
-                count == buildings.size
+                mapOf( "updateBuildings" to (count == buildings.size))
             }.committed
         }
 
