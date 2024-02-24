@@ -4,26 +4,18 @@ plugins {
     kotlin("jvm") version "1.9.20"
     id("io.kotest") version "0.3.8"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.20"
-    id("org.sonarqube") version "3.3"
-    id("maven-publish")
     id("jacoco")
 }
 
 buildscript {
     repositories {
-        mavenCentral() // or gradlePluginPortal()
-    }
-    dependencies {
-        classpath("com.dipien:semantic-version-gradle-plugin:1.3.0")
+        mavenCentral()
     }
 }
 
 
 group = "org.wagham"
 version = "0.21.0"
-
-apply(plugin = "com.dipien.semantic-version")
-apply(plugin = "maven-publish")
 
 repositories {
     mavenCentral()
@@ -51,24 +43,4 @@ java {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "19"
-}
-
-publishing {
-    repositories {
-        maven {
-            url = uri("https://repo.repsy.io/mvn/testadirapa/kabot")
-            credentials {
-                username = System.getenv("REPSY_USERNAME")
-                password = System.getenv("REPSY_PASSWORD")
-            }
-        }
-    }
-    publications {
-        register("mavenJava", MavenPublication::class) {
-            groupId = "org.wagham"
-            artifactId = "kabot-db-connector"
-            version = version.toString().replace("-SNAPSHOT", "")
-            from(components["java"])
-        }
-    }
 }
