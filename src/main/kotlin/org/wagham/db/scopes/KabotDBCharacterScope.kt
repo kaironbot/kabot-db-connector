@@ -258,7 +258,10 @@ class KabotDBCharacterScope(
                 ),
                 UpdateOptions().upsert(true)
             ).isSuccessful()
-            characterCreated && playerExistsOrIsCreated != null
+            mapOf(
+                "characterCreated" to characterCreated,
+                "playerCreated" to (playerExistsOrIsCreated != null)
+            )
         }
 
     /**
@@ -280,6 +283,8 @@ class KabotDBCharacterScope(
                     status = errata.statusChange ?: character.status,
                     errata = listOf(errata) + character.errata
                 )
-            ).isSuccessful()
+            ).isSuccessful().let {
+                mapOf("addErrata" to it)
+            }
         }
 }

@@ -65,17 +65,21 @@ class KabotMultiDBClient(
 
     fun getAllGuildsId(): Set<String> = clientCache.keys
 
-    suspend fun transaction(guildId: String, retries: Long = 3, block: suspend (ClientSession) -> Boolean): TransactionResult {
+    suspend fun transaction(guildId: String, retries: Long = 3, block: suspend (ClientSession) -> Map<String, Boolean>): TransactionResult {
         if (clientCache[guildId] == null) throw InvalidGuildException(guildId)
         return flow {
-            clientCache.getValue(guildId).startSession().use {
-                it.startTransaction()
+            clientCache.getValue(guildId).startSession().use { session ->
+                session.startTransaction()
                 runCatching {
-                    if (block(it)) {
-                        it.commitTransactionAndAwait()
+                    val stepResults = block(session)
+                    if (stepResults.all { it.value }) {
+                        session.commitTransactionAndAwait()
                         TransactionResult(true)
                     }
-                    else throw TransactionAbortedException()
+                    else {
+                        session.abortTransactionAndAwait()
+                        throw TransactionAbortedException(stepResults)
+                    }
                 }.onSuccess { result ->
                     emit(result)
                 }.onFailure { e ->

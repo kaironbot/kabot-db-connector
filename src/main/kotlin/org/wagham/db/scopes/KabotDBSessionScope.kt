@@ -184,7 +184,11 @@ class KabotDBSessionScope(
             ),
             UpdateOptions().upsert(true)
         ).upsertedId != null
-        insertSessionStep && playersUpdateStep && masterUpdateStep
+        mapOf(
+            "insertSession" to insertSessionStep,
+            "playersUpdated" to playersUpdateStep,
+            "masterUpdated" to masterUpdateStep
+        )
     }
 
     /**
@@ -243,6 +247,10 @@ class KabotDBSessionScope(
 
         val deletionStep = getMainCollection(guildId).deleteOne(Session::id eq sessionId).deletedCount == 1L
 
-        masterUpdateStep && characterStep && deletionStep
+        mapOf(
+            "masterUpdated" to masterUpdateStep,
+            "charactersUpdated" to characterStep,
+            "sessionDeleted" to deletionStep
+        )
     }
 }

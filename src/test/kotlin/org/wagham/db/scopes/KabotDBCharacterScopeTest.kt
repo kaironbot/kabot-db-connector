@@ -118,7 +118,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
                     character.id,
                     newLanguage
                 ) shouldBe true
-                true
+                mapOf("test" to true)
             }.committed shouldBe true
 
             client.charactersScope.getCharacter(guildId, character.id).languages shouldContain newLanguage
@@ -130,7 +130,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
                     character.id,
                     newLanguage
                 ) shouldBe true
-                true
+                mapOf("test" to true)
             }
 
             client.charactersScope.getCharacter(guildId, character.id).languages shouldNotContain newLanguage
@@ -149,7 +149,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
                     character.id,
                     newLanguage
                 ) shouldBe true
-                true
+                mapOf("test" to true)
             }.committed shouldBe true
 
 
@@ -162,7 +162,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
                     character.id,
                     newLanguage
                 ) shouldBe false
-                false
+                mapOf("test" to false)
             }.committed shouldBe false
 
         }
@@ -179,7 +179,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
                     character.id,
                     newLanguage
                 ) shouldBe false
-                false
+                mapOf("test" to false)
             }.committed shouldBe false
 
             client.charactersScope.getCharacter(guildId, character.id).languages shouldNotContain newLanguage
@@ -194,7 +194,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
             val otherItem = (character.inventory.keys - itemToRemove).random()
             val result = client.transaction(guildId) {
                 client.charactersScope.removeItemFromInventory(it, guildId, character.id, itemToRemove, 1) shouldBe true
-                true
+                mapOf("test" to true)
             }
             result.committed shouldBe true
             val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
@@ -208,7 +208,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
             val otherItem = (character.inventory.keys - itemToRemove).random()
             val result = client.transaction(guildId) {
                 client.charactersScope.removeItemFromInventory(it, guildId, character.id, itemToRemove, character.inventory[itemToRemove]!!) shouldBe true
-                true
+                mapOf("test" to true)
             }
             result.committed shouldBe true
             val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
@@ -222,7 +222,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
             val otherItem = (character.inventory.keys - itemToRemove).random()
             val result = client.transaction(guildId) {
                 client.charactersScope.removeItemFromInventory(it, guildId, character.id, itemToRemove, character.inventory[itemToRemove]!! + 2) shouldBe true
-                true
+                mapOf("test" to true)
             }
             result.committed shouldBe true
             val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
@@ -236,7 +236,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
             val otherItem = (character.inventory.keys - itemToRemove).random()
             val result = client.transaction(guildId) {
                 client.charactersScope.removeItemFromInventory(it, guildId, character.id, itemToRemove, 1) shouldBe false
-                true
+                mapOf("test" to true)
             }
             result.committed shouldBe true
             val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
@@ -250,7 +250,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
             val qty = Random.nextInt(0, 100)
             val result = client.transaction(guildId) {
                 client.charactersScope.addItemToInventory(it, guildId, character.id, item, qty) shouldBe true
-                true
+                mapOf("test" to true)
             }
             result.committed shouldBe true
             val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
@@ -264,7 +264,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
             val otherItem = (character.inventory.keys - itemToAdd).random()
             val result = client.transaction(guildId) {
                 client.charactersScope.addItemToInventory(it, guildId, character.id, itemToAdd, qty) shouldBe true
-                true
+                mapOf("test" to true)
             }
             result.committed shouldBe true
             val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
@@ -280,12 +280,13 @@ class KabotDBCharacterScopeTest : StringSpec() {
                 characters.forEach { character ->
                     client.charactersScope.addItemToInventory(it, guildId, character.id, item, qty) shouldBe true
                 }
-                true
+                mapOf("test" to true)
             }
             result.committed shouldBe true
 
             client.transaction(guildId) {
                 client.charactersScope.removeItemFromAllInventories(it, guildId, item)
+                mapOf("test" to true)
             }.committed shouldBe true
 
             characters.forEach {
@@ -394,7 +395,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
             val character = client.charactersScope.getAllCharacters(guildId).first { it.money > 0 }
             val result = client.transaction(guildId) {
                 client.charactersScope.subtractMoney(it, guildId, character.id, character.money) shouldBe true
-                true
+                mapOf("test" to true)
             }
             result.committed shouldBe true
             val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
@@ -406,7 +407,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
             val amount = Random.nextFloat() * 1000
             val result = client.transaction(guildId) {
                 client.charactersScope.addMoney(it, guildId, character.id, amount) shouldBe true
-                true
+                mapOf("test" to true)
             }
             result.committed shouldBe true
             val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
@@ -418,7 +419,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
             val result = client.transaction(guildId) {
                 client.charactersScope.subtractMoney(it, guildId, character.id, character.money) shouldBe true
                 client.charactersScope.getCharacter(it, guildId, character.id).money shouldBe 0
-                false
+                mapOf("test" to false)
             }
             result.committed shouldBe false
             result.exception.shouldBeInstanceOf<TransactionAbortedException>()
@@ -445,6 +446,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
             val playerId = uuid()
             client.transaction(guildId) {
                 client.playersScope.createPlayer(it, guildId, playerId, playerId) != null
+                mapOf("test" to true)
             }.committed shouldBe true
             val player = client.playersScope.getPlayer(guildId, playerId).shouldNotBeNull()
             val data = CharacterCreationData(
@@ -504,7 +506,8 @@ class KabotDBCharacterScopeTest : StringSpec() {
         "getActiveCharacter should return an empty flow if the player has no active character" {
             val playerId = uuid()
             client.transaction(guildId) {
-                client.playersScope.createPlayer(it, guildId, playerId, playerId) != null
+                val result = client.playersScope.createPlayer(it, guildId, playerId, playerId) != null
+                mapOf("test" to result)
             }.committed shouldBe true
             client.charactersScope.getActiveCharacters(guildId, playerId).count() shouldBe 0
         }
@@ -630,7 +633,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
                     newBuilding,
                     buildingType
                 )
-                true
+                mapOf("test" to true)
             }
             result.committed shouldBe true
             val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
@@ -646,23 +649,25 @@ class KabotDBCharacterScopeTest : StringSpec() {
 
             val oldBuilding = Building(uuid(), uuid(), uuid(), uuid())
             client.transaction(guildId) {
-                client.charactersScope.addBuilding(
+                val result = client.charactersScope.addBuilding(
                     it,
                     guildId,
                     character.id,
                     oldBuilding,
                     buildingType
                 )
+                mapOf("test" to result)
             }.committed shouldBe true
             val newBuilding = Building(uuid(), uuid(), uuid(), uuid())
             val result = client.transaction(guildId) {
-                client.charactersScope.addBuilding(
+                val result = client.charactersScope.addBuilding(
                     it,
                     guildId,
                     character.id,
                     newBuilding,
                     buildingType
                 )
+                mapOf("test" to result)
             }
             result.committed shouldBe true
             val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
@@ -680,23 +685,25 @@ class KabotDBCharacterScopeTest : StringSpec() {
 
             val oldBuilding = Building(uuid(), uuid(), uuid(), uuid())
             client.transaction(guildId) {
-                client.charactersScope.addBuilding(
+                val result = client.charactersScope.addBuilding(
                     it,
                     guildId,
                     character.id,
                     oldBuilding,
                     buildingType
                 )
+                mapOf("test" to result)
             }.committed shouldBe true
 
             val result = client.transaction(guildId) {
-                client.charactersScope.removeBuilding(
+               val result = client.charactersScope.removeBuilding(
                     it,
                     guildId,
                     character.id,
                     oldBuilding.name,
                     buildingType
                 )
+                mapOf("test" to result)
             }
             result.committed shouldBe true
             val updatedCharacter = client.charactersScope.getCharacter(guildId, character.id)
