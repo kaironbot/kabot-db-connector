@@ -218,31 +218,35 @@ class KabotDBSessionScope(
             mongoSession,
             Character::id eq session.master
         ) ?: throw ResourceNotFoundException(session.master, "Characters")
-        val masterUpdateStep = db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).updateOne(
-            mongoSession,
-            Character::id eq session.master,
-            masterCharacter.copy(
-                masterMS = masterCharacter.masterMS - masterReward,
-            )
-        ).isSuccessful()
-
-        val characterStep = session.characters.all {
-            val character = db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).findOne(
-                mongoSession,
-                Character::id eq it.character
-            ) ?: throw ResourceNotFoundException(it.character, "Characters")
-            val updatedCharacter = character.copy(
-                sessionMS = character.sessionMS - it.ms,
-                status = if(character.status == CharacterStatus.dead && !it.isAlive) CharacterStatus.active else character.status,
-                errata = character.errata.filter { errata ->
-                    it.isAlive || errata.date != session.date
-                }
-            )
+        val masterUpdateStep = if(masterReward != 0) {
             db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).updateOne(
                 mongoSession,
-                Character::id eq it.character,
-                updatedCharacter
+                Character::id eq session.master,
+                masterCharacter.copy(
+                    masterMS = masterCharacter.masterMS - masterReward,
+                )
             ).isSuccessful()
+        } else true
+
+        val characterStep = session.characters.all {
+            if(it.ms != 0 || !it.isAlive) {
+                val character = db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).findOne(
+                    mongoSession,
+                    Character::id eq it.character
+                ) ?: throw ResourceNotFoundException(it.character, "Characters")
+                val updatedCharacter = character.copy(
+                    sessionMS = character.sessionMS - it.ms,
+                    status = if (character.status == CharacterStatus.dead && !it.isAlive) CharacterStatus.active else character.status,
+                    errata = character.errata.filter { errata ->
+                        it.isAlive || errata.date != session.date
+                    }
+                )
+                db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).updateOne(
+                    mongoSession,
+                    Character::id eq it.character,
+                    updatedCharacter
+                ).isSuccessful()
+            } else true
         }
 
         val deletionStep = getMainCollection(guildId).deleteOne(Session::id eq sessionId).deletedCount == 1L
