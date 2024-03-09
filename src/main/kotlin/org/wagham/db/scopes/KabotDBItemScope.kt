@@ -115,7 +115,7 @@ class KabotDBItemScope(
      */
     suspend fun createOrUpdateItems(guildId: String, items: List<Item>): TransactionResult =
         getMainCollection(guildId).let { collection ->
-            client.transaction(guildId) {
+            client.transaction(guildId) { session ->
                 val existingItemsNames = collection.find(
                     Item::name `in` items.map { it.name }
                 ).toFlow().map { it.name }.toList()
@@ -124,15 +124,13 @@ class KabotDBItemScope(
                 }.takeIf { it.isNotEmpty() }?.let {  itemsToCreate ->
                     collection.insertMany(itemsToCreate).insertedIds.size == itemsToCreate.size
                 } ?: true
+                session.tryCommit("itemsCreated", creationResult)
 
                 val itemsToUpdate = items.filter { existingItemsNames.contains(it.name) }
                 val updateResult = itemsToUpdate.all {
                     collection.updateOne(Item::name eq it.name, it).modifiedCount == 1L
                 }
-                mapOf(
-                    "itemCreated" to creationResult,
-                    "itemUpdated" to updateResult
-                )
+                session.tryCommit("itemsUpdated", updateResult)
             }
         }
 

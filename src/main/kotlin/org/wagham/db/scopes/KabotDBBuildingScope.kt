@@ -31,16 +31,17 @@ class KabotDBBuildingScope(
 
     suspend fun updateBuildings(guildId: String, buildings: List<BuildingRecipe>) =
         getMainCollection(guildId).let { collection ->
-            client.transaction(guildId) {
+            client.transaction(guildId) { session ->
                 val count = buildings.sumOf { b ->
                     val result = collection.updateOne(
+                        session.session,
                         BuildingRecipe::name eq b.name,
                         b,
                         UpdateOptions().upsert(true)
                     )
                     result.modifiedCount + (1.takeIf { result.upsertedId != null } ?: 0)
                 }.toInt()
-                mapOf( "updateBuildings" to (count == buildings.size))
+                session.tryCommit("updatedBuildings", (count == buildings.size))
             }.committed
         }
 

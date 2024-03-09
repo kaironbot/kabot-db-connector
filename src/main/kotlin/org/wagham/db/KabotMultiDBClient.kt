@@ -12,6 +12,7 @@ import org.litote.kmongo.reactivestreams.KMongo
 import org.wagham.db.exceptions.InvalidGuildException
 import org.wagham.db.exceptions.TransactionAbortedException
 import org.wagham.db.models.MongoCredentials
+import org.wagham.db.models.client.KabotSession
 import org.wagham.db.models.client.TransactionResult
 import org.wagham.db.scopes.*
 
@@ -66,21 +67,19 @@ class KabotMultiDBClient(
 
     fun getAllGuildsId(): Set<String> = clientCache.keys
 
-    suspend fun transaction(guildId: String, retries: Long = 3, block: suspend (ClientSession) -> Map<String, Boolean>): TransactionResult {
+    suspend fun transaction(
+        guildId: String,
+        retries: Long = 3,
+        block: suspend (KabotSession) -> Unit
+    ): TransactionResult {
         if (clientCache[guildId] == null) throw InvalidGuildException(guildId)
         return flow {
             clientCache.getValue(guildId).startSession().use { session ->
                 session.startTransaction()
                 runCatching {
-                    val stepResults = block(session)
-                    if (stepResults.all { it.value }) {
-                        session.commitTransactionAndAwait()
-                        TransactionResult(true)
-                    }
-                    else {
-                        session.abortTransactionAndAwait()
-                        throw TransactionAbortedException(stepResults)
-                    }
+                    block(KabotSession(session))
+                    session.commitTransactionAndAwait()
+                    TransactionResult(true)
                 }.onSuccess { result ->
                     emit(result)
                 }.onFailure { e ->

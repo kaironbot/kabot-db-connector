@@ -133,10 +133,10 @@ class KabotDBSessionScope(
         registeredBy: String
     ): TransactionResult = client.transaction(guildId) { session ->
         val db = client.getGuildDb(guildId)
-        val newUid = getMainCollection(guildId).find().descendingSort(Session::uid).first()?.uid?.plus(1) ?: 0
-        val playersUpdateStep = outcomes.all {
+        val newUid = getMainCollection(guildId).find(session.session).descendingSort(Session::uid).first()?.uid?.plus(1) ?: 0
+        outcomes.forEach {
             val character = db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).findOne(
-                session,
+                session.session,
                 Character::id eq it.characterId
             ) ?: throw ResourceNotFoundException(it.characterId, "Characters")
             val updatedCharacter = character.copy(
@@ -147,27 +147,31 @@ class KabotDBSessionScope(
                 lastPlayed = date
             )
             db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).updateOne(
-                session,
+                session.session,
                 Character::id eq it.characterId,
                 updatedCharacter
-            ).isSuccessful()
+            ).isSuccessful().also { result ->
+                session.tryCommit("Update ${it.characterId}", result)
+            }
         }
         val masterCharacter = db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).findOne(
-            session,
+            session.session,
             Character::id eq masterId
         ) ?: throw ResourceNotFoundException(masterId, "Characters")
-        val masterUpdateStep = db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).updateOne(
-            session,
+       db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).updateOne(
+            session.session,
             Character::id eq masterId,
             masterCharacter.copy(
                 masterMS = masterCharacter.masterMS + masterReward,
                 lastMastered = date
             )
-        ).isSuccessful()
+        ).isSuccessful().also {
+            session.tryCommit("Master update", it)
+       }
 
         val sId = sessionId ?: UUID.randomUUID().toString()
         val insertSessionStep = getMainCollection(guildId).updateOne(
-            session,
+            session.session,
             Session::id eq sId,
             Session(
                 id = sId,
@@ -184,11 +188,7 @@ class KabotDBSessionScope(
             ),
             UpdateOptions().upsert(true)
         ).upsertedId != null
-        mapOf(
-            "insertSession" to insertSessionStep,
-            "playersUpdated" to playersUpdateStep,
-            "masterUpdated" to masterUpdateStep
-        )
+        session.tryCommit("Session added", insertSessionStep)
     }
 
     /**
@@ -208,30 +208,31 @@ class KabotDBSessionScope(
         guildId: String,
         sessionId: String,
         masterReward: Int
-    ): TransactionResult = client.transaction(guildId) { mongoSession ->
+    ): TransactionResult = client.transaction(guildId) { kabotSession ->
         val db = client.getGuildDb(guildId)
-        val session = getMainCollection(guildId).findOne(mongoSession, Session::id eq sessionId)
+        val session = getMainCollection(guildId).findOne(kabotSession.session, Session::id eq sessionId)
             ?: throw IllegalArgumentException("Cannot the session with id $sessionId")
 
         // Removing master reward
         val masterCharacter = db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).findOne(
-            mongoSession,
+            kabotSession.session,
             Character::id eq session.master
         ) ?: throw ResourceNotFoundException(session.master, "Characters")
         val masterUpdateStep = if(masterReward != 0) {
             db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).updateOne(
-                mongoSession,
+                kabotSession.session,
                 Character::id eq session.master,
                 masterCharacter.copy(
                     masterMS = masterCharacter.masterMS - masterReward,
                 )
             ).isSuccessful()
         } else true
+        kabotSession.tryCommit("Master updated", masterUpdateStep)
 
-        val characterStep = session.characters.all {
+        session.characters.forEach {
             if(it.ms != 0 || !it.isAlive) {
                 val character = db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).findOne(
-                    mongoSession,
+                    kabotSession.session,
                     Character::id eq it.character
                 ) ?: throw ResourceNotFoundException(it.character, "Characters")
                 val updatedCharacter = character.copy(
@@ -242,19 +243,17 @@ class KabotDBSessionScope(
                     }
                 )
                 db.getCollection<Character>(CollectionNames.CHARACTERS.stringValue).updateOne(
-                    mongoSession,
+                    kabotSession.session,
                     Character::id eq it.character,
                     updatedCharacter
-                ).isSuccessful()
-            } else true
+                ).isSuccessful().also { result ->
+                    kabotSession.tryCommit("Update ${it.character}", result)
+                }
+            }
         }
 
-        val deletionStep = getMainCollection(guildId).deleteOne(Session::id eq sessionId).deletedCount == 1L
-
-        mapOf(
-            "masterUpdated" to masterUpdateStep,
-            "charactersUpdated" to characterStep,
-            "sessionDeleted" to deletionStep
-        )
+        kabotSession.tryCommit("sessionDeleted") {
+            getMainCollection(guildId).deleteOne(kabotSession.session, Session::id eq sessionId).deletedCount == 1L
+        }
     }
 }

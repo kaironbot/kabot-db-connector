@@ -13,6 +13,7 @@ import org.wagham.db.enums.CharacterStatus
 import org.wagham.db.enums.CollectionNames
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.*
+import org.wagham.db.models.client.KabotSession
 import org.wagham.db.models.client.TransactionResult
 import org.wagham.db.models.creation.CharacterCreationData
 import org.wagham.db.models.embed.ProficiencyStub
@@ -101,21 +102,28 @@ class KabotDBCharacterScope(
                 addToSet(Character::proficiencies, proficiency)
             ).modifiedCount == 1L
 
-    suspend fun addProficiencyToCharacter(session: ClientSession, guildId: String, characterId: String, proficiency: ProficiencyStub) =
-        getMainCollection(guildId)
-            .updateOne(
-                session,
-                Character::id eq characterId,
-                addToSet(Character::proficiencies, proficiency)
-            ).modifiedCount == 1L
+    suspend fun addProficiencyToCharacter(session: KabotSession, guildId: String, characterId: String, proficiency: ProficiencyStub) {
+        session.tryCommit("add ${proficiency.name} $characterId") {
+            getMainCollection(guildId)
+                .updateOne(
+                    session.session,
+                    Character::id eq characterId,
+                    addToSet(Character::proficiencies, proficiency)
+                ).modifiedCount == 1L
+        }
+    }
 
-    suspend fun addLanguageToCharacter(session: ClientSession, guildId: String, characterId: String, language: ProficiencyStub) =
-        getMainCollection(guildId)
-            .updateOne(
-                session,
+
+    suspend fun addLanguageToCharacter(session: KabotSession, guildId: String, characterId: String, language: ProficiencyStub) {
+        session.tryCommit("add ${language.name} $characterId") {
+            getMainCollection(guildId).updateOne(
+                session.session,
                 Character::id eq characterId,
                 addToSet(Character::languages, language)
             ).modifiedCount == 1L
+        }
+    }
+
 
     suspend fun removeProficiencyFromCharacter(guildId: String, characterId: String, proficiency: ProficiencyStub) =
         getMainCollection(guildId)
@@ -124,106 +132,136 @@ class KabotDBCharacterScope(
                 pull(Character::proficiencies, proficiency),
             ).modifiedCount == 1L
 
-    suspend fun removeLanguageFromCharacter(session: ClientSession, guildId: String, characterId: String, language: ProficiencyStub) =
-        getMainCollection(guildId)
-            .updateOne(
-                session,
-                Character::id eq characterId,
-                pull(Character::languages, language),
-            ).modifiedCount == 1L
-
-    suspend fun subtractMoney(session: ClientSession, guildId: String, characterId: String, qty: Float) =
-        client.getGuildDb(guildId).let {
-            val character = getCharacter(session, guildId, characterId)
-            it.getCollection<Character>(collectionName)
+    suspend fun removeLanguageFromCharacter(session: KabotSession, guildId: String, characterId: String, language: ProficiencyStub) {
+        session.tryCommit("remove ${language.name} $characterId") {
+            getMainCollection(guildId)
                 .updateOne(
-                    session,
+                    session.session,
                     Character::id eq characterId,
-                    setValue(Character::money, character.money - qty),
+                    pull(Character::languages, language),
                 ).modifiedCount == 1L
         }
+    }
 
-    suspend fun addMoney(session: ClientSession, guildId: String, characterId: String, qty: Float) =
+
+    suspend fun subtractMoney(session: KabotSession, guildId: String, characterId: String, qty: Float) {
         client.getGuildDb(guildId).let {
-            val character = getCharacter(session, guildId, characterId)
-            it.getCollection<Character>(collectionName)
-                .updateOne(
-                    session,
-                    Character::id eq characterId,
-                    setValue(Character::money, character.money + qty),
-                ).modifiedCount == 1L
+            val character = getCharacter(session.session, guildId, characterId)
+            session.tryCommit("subtract money $characterId") {
+                it.getCollection<Character>(collectionName)
+                    .updateOne(
+                        session.session,
+                        Character::id eq characterId,
+                        setValue(Character::money, character.money - qty),
+                    ).modifiedCount == 1L
+            }
+        }
+    }
+
+
+    suspend fun addMoney(session: KabotSession, guildId: String, characterId: String, qty: Float) {
+        client.getGuildDb(guildId).let {
+            val character = getCharacter(session.session, guildId, characterId)
+            session.tryCommit("add money $characterId") {
+                it.getCollection<Character>(collectionName)
+                    .updateOne(
+                        session.session,
+                        Character::id eq characterId,
+                        setValue(Character::money, character.money + qty),
+                    ).modifiedCount == 1L
+            }
         }
 
-    suspend fun removeItemFromInventory(session: ClientSession, guildId: String, characterId: String, item: String, qty: Int) =
+    }
+
+    suspend fun removeItemFromInventory(session: KabotSession, guildId: String, characterId: String, item: String, qty: Int) {
         client.getGuildDb(guildId).let {
-            val c = getCharacter(session, guildId, characterId)
+            val c = getCharacter(session.session, guildId, characterId)
             val updatedCharacter = when {
                 c.inventory[item] == null -> c
                 c.inventory[item]!! <= qty -> c.copy(
                     inventory = c.inventory - item
                 )
+
                 c.inventory[item]!! > qty -> c.copy(
                     inventory = c.inventory + (item to c.inventory[item]!! - qty)
                 )
+
                 else -> c
             }
-            it.getCollection<Character>(collectionName)
-                .updateOne(
-                    session,
-                    Character::id eq characterId,
-                    updatedCharacter
-                ).modifiedCount == 1L
+            session.tryCommit("remove $item from $characterId") {
+                it.getCollection<Character>(collectionName)
+                    .updateOne(
+                        session.session,
+                        Character::id eq characterId,
+                        updatedCharacter
+                    ).modifiedCount == 1L
+            }
         }
+    }
 
-    suspend fun removeItemFromAllInventories(session: ClientSession, guildId: String, item: String) =
+    suspend fun removeItemFromAllInventories(session: KabotSession, guildId: String, item: String) {
         getMainCollection(guildId).updateMany(
-            session,
+            session.session,
             BsonDocument(),
             Updates.unset("inventory.$item")
-        ).let { true }
+        )
+    }
 
-    suspend fun addItemToInventory(session: ClientSession, guildId: String, characterId: String, item: String, qty: Int) =
+
+    suspend fun addItemToInventory(session: KabotSession, guildId: String, characterId: String, item: String, qty: Int) {
         client.getGuildDb(guildId).let {
-            val c = getCharacter(session, guildId, characterId)
-            it.getCollection<Character>(collectionName)
-                .updateOne(
-                    session,
-                    Character::id eq characterId,
-                    c.copy(
-                        inventory = c.inventory + (item to (c.inventory[item] ?: 0) + qty)
-                    )
-                ).modifiedCount == 1L
+            val c = getCharacter(session.session, guildId, characterId)
+            session.tryCommit("add $item to $characterId") {
+                it.getCollection<Character>(collectionName)
+                    .updateOne(
+                        session.session,
+                        Character::id eq characterId,
+                        c.copy(
+                            inventory = c.inventory + (item to (c.inventory[item] ?: 0) + qty)
+                        )
+                    ).modifiedCount == 1L
+            }
         }
+    }
 
-    suspend fun addBuilding(session: ClientSession, guildId: String, characterId: String, building: Building, type: BaseBuilding) =
+    suspend fun addBuilding(session: KabotSession, guildId: String, characterId: String, building: Building, type: BaseBuilding) {
         client.getGuildDb(guildId).let {
-            val c = getCharacter(session, guildId, characterId)
+            val c = getCharacter(session.session, guildId, characterId)
             val bId = "${type.name}:${type.type}:${type.tier}"
-            it.getCollection<Character>(collectionName)
-                .updateOne(
-                    session,
-                    Character::id eq characterId,
-                    c.copy(
-                        buildings = c.buildings +
-                            (bId to (c.buildings[bId] ?: emptyList()) + building)
-                    )
-                ).modifiedCount == 1L
+            session.tryCommit("add building $characterId") {
+                it.getCollection<Character>(collectionName)
+                    .updateOne(
+                        session.session,
+                        Character::id eq characterId,
+                        c.copy(
+                            buildings = c.buildings +
+                                (bId to (c.buildings[bId] ?: emptyList()) + building)
+                        )
+                    ).modifiedCount == 1L
+            }
         }
+    }
 
-    suspend fun removeBuilding(session: ClientSession, guildId: String, characterId: String, buildingId: String, type: BaseBuilding) =
+
+    suspend fun removeBuilding(session: KabotSession, guildId: String, characterId: String, buildingId: String, type: BaseBuilding) {
         client.getGuildDb(guildId).let {
-            val c = getCharacter(session, guildId, characterId)
+            val c = getCharacter(session.session, guildId, characterId)
             val bId = "${type.name}:${type.type}:${type.tier}"
-            it.getCollection<Character>(collectionName)
-                .updateOne(
-                    session,
-                    Character::id eq characterId,
-                    c.copy(
-                        buildings = c.buildings +
-                            (bId to (c.buildings[bId] ?: emptyList()).filter { b -> b.name != buildingId })
-                    )
-                ).modifiedCount == 1L
+            session.tryCommit("remove building $buildingId $characterId"){
+                it.getCollection<Character>(collectionName)
+                    .updateOne(
+                        session.session,
+                        Character::id eq characterId,
+                        c.copy(
+                            buildings = c.buildings +
+                                (bId to (c.buildings[bId] ?: emptyList()).filter { b -> b.name != buildingId })
+                        )
+                    ).modifiedCount == 1L
+            }
         }
+    }
+
 
     fun getCharactersWithPlayer(guildId: String, status: CharacterStatus? = null) =
         getMainCollection(guildId)
@@ -232,11 +270,11 @@ class KabotDBCharacterScope(
 
     suspend fun createCharacter(guildId: String, playerId: String, playerName: String, data: CharacterCreationData): TransactionResult =
         client.transaction(guildId) { session ->
-            val playerExistsOrIsCreated = client.playersScope.getPlayer(session, guildId, playerId) ?:
+           client.playersScope.getPlayer(session.session, guildId, playerId) ?:
                 client.playersScope.createPlayer(session, guildId, playerId, playerName)
             val startingExp = client.utilityScope.getExpTable(guildId).levelToExp(data.startingLevel)
             val characterCreated = getMainCollection(guildId).updateOne(
-                session,
+                session.session,
                 Character::id eq "$playerId:${data.name}",
                 Character(
                     id = "$playerId:${data.name}",
@@ -258,10 +296,7 @@ class KabotDBCharacterScope(
                 ),
                 UpdateOptions().upsert(true)
             ).isSuccessful()
-            mapOf(
-                "characterCreated" to characterCreated,
-                "playerCreated" to (playerExistsOrIsCreated != null)
-            )
+            session.tryCommit("characterCreated", characterCreated)
         }
 
     /**
@@ -273,18 +308,18 @@ class KabotDBCharacterScope(
      * @return a [TransactionResult].
      */
     suspend fun addErrata(guildId: String, characterId: String, errata: Errata): TransactionResult =
-        client.transaction(guildId) { clientSession ->
-            val character = getCharacter(clientSession, guildId, characterId)
+        client.transaction(guildId) { session ->
+            val character = getCharacter(session.session, guildId, characterId)
             getMainCollection(guildId).updateOne(
-                clientSession,
+                session.session,
                 Character::id eq characterId,
                 character.copy(
                     errataMS = character.errataMS + errata.ms,
                     status = errata.statusChange ?: character.status,
                     errata = listOf(errata) + character.errata
                 )
-            ).isSuccessful().let {
-                mapOf("addErrata" to it)
+            ).isSuccessful().also {
+                session.tryCommit("addErrata", it)
             }
         }
 }

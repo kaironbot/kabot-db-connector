@@ -39,13 +39,12 @@ class KabotDBCharacterTransactionsScopeTest : StringSpec() {
                 type = TransactionType.ADD
             )
             client.transaction(guildId) {
-                val result = client.characterTransactionsScope.addTransactionForCharacter(
+                client.characterTransactionsScope.addTransactionForCharacter(
                     it,
                     guildId,
                     characterId,
                     transaction
                 )
-                mapOf("test" to result)
             }.committed shouldBe true
             client.characterTransactionsScope.getLastTransactions(guildId, characterId).let {
                 it.size shouldBe 1

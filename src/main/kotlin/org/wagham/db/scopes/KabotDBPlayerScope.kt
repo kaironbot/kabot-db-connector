@@ -11,6 +11,7 @@ import org.wagham.db.enums.CollectionNames
 import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.Character
 import org.wagham.db.models.Player
+import org.wagham.db.models.client.KabotSession
 import java.util.*
 
 class KabotDBPlayerScope(
@@ -31,17 +32,19 @@ class KabotDBPlayerScope(
     suspend fun getPlayer(session: ClientSession, guildId: String, playerId: String) =
         getMainCollection(guildId).findOne(session, Player::playerId eq playerId)
 
-    suspend fun createPlayer(session: ClientSession, guildId: String, playerId: String, playerName: String): Player? {
+    suspend fun createPlayer(session: KabotSession, guildId: String, playerId: String, playerName: String): Player {
         getMainCollection(guildId)
             .insertOne(
-                session,
+                session.session,
                 Player(
                     playerId = playerId,
                     name = playerName,
                     dateJoined = Date()
                 )
             )
-        return getPlayer(session, guildId, playerId)
+        val player = getPlayer(session.session, guildId, playerId)
+        session.tryCommit("createPlayer", player != null)
+        return checkNotNull(player)
     }
 
     suspend fun setActiveCharacter(guildId: String, playerId: String, characterId: String): Boolean {
