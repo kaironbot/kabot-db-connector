@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.models.CharacterSheet
 import org.wagham.db.models.MongoCredentials
+import org.wagham.db.models.embed.CharacterToken
 import org.wagham.db.uuid
 import java.util.Base64
 
@@ -34,13 +35,14 @@ class KabotDBCharacterSheetScopeTest : StringSpec() {
 
 		"Can create a Character Sheet and update the token" {
 			val fakeBase64Image = Base64.getEncoder().encodeToString(uuid().toByteArray())
+			val mimeType = "image/webp"
 			val characterId = uuid()
 			val characterSheet = CharacterSheet(id = characterId)
 			client.characterSheetsScope.createOrUpdateCharacterSheet(guildId, characterId, characterSheet) shouldBe true
 			client.characterSheetsScope.getCharacterSheet(guildId, characterId) shouldBe characterSheet
 
-			client.characterSheetsScope.setToken(guildId, characterId, fakeBase64Image) shouldBe true
-			client.characterSheetsScope.getCharacterSheet(guildId, characterId)?.token shouldBe fakeBase64Image
+			client.characterSheetsScope.setToken(guildId, characterId, fakeBase64Image, mimeType) shouldBe true
+			client.characterSheetsScope.getCharacterSheet(guildId, characterId)?.token shouldBe CharacterToken(fakeBase64Image, mimeType)
 		}
 
 	}

@@ -6,7 +6,8 @@ import org.litote.kmongo.eq
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CollectionNames
 import org.wagham.db.models.CharacterSheet
-import org.wagham.db.utils.BinaryData
+import org.wagham.db.models.embed.CharacterToken
+import org.wagham.db.utils.Base64String
 import org.wagham.db.utils.CharacterId
 import org.wagham.db.utils.isSuccessful
 
@@ -51,11 +52,13 @@ class KabotDBCharacterSheetScope(
 	 * @param guildId the guild where to update the [CharacterSheet].
 	 * @param characterId the character owner of the [CharacterSheet].
 	 * @param token a base64-encoded image.
+	 * @param mimeType the mime type of the image.
 	 * @return true if the operation succeeded and false otherwise.
 	 */
-	suspend fun setToken(guildId: String, characterId: CharacterId, token: BinaryData): Boolean {
-		val currentSheet = getCharacterSheet(guildId, characterId)?.copy(token = token)
-			?: CharacterSheet(id = characterId, token = token)
+	suspend fun setToken(guildId: String, characterId: CharacterId, token: Base64String, mimeType: String): Boolean {
+		val characterToken = CharacterToken(image = token, mimeType = mimeType)
+		val currentSheet = getCharacterSheet(guildId, characterId)?.copy(token = characterToken)
+			?: CharacterSheet(id = characterId, token = characterToken)
 		return createOrUpdateCharacterSheet(guildId, characterId, currentSheet)
 	}
 }

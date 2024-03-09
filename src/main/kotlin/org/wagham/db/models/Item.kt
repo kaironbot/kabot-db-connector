@@ -1,5 +1,6 @@
 package org.wagham.db.models
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import kotlinx.serialization.Serializable
 import org.bson.codecs.pojo.annotations.BsonId
@@ -22,5 +23,6 @@ data class Item (
     val giveRatio: Float = 1f,
     @JsonDeserialize(using = JacksonLenientCraftDeserializer::class)
     val craft: List<CraftRequirement> = emptyList(),
-    val labels: Set<LabelStub> = emptySet()
+    val labels: Set<LabelStub> = emptySet(),
+    @JsonProperty("normalized_name") val normalizedName: String = ""
 )

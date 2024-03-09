@@ -6,4 +6,4 @@ typealias ItemId = String
 
 typealias CharacterId = String
 
-typealias BinaryData = String
+typealias Base64String = String

@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -15,6 +16,7 @@ import org.wagham.db.models.Item
 import org.wagham.db.models.MongoCredentials
 import org.wagham.db.models.embed.CraftRequirement
 import org.wagham.db.models.embed.LabelStub
+import org.wagham.db.utils.StringNormalizer
 import org.wagham.db.uuid
 
 class KabotDBItemScopeTest : StringSpec() {
@@ -37,8 +39,14 @@ class KabotDBItemScopeTest : StringSpec() {
 
     private fun StringSpec.testItems() {
 
+        lateinit var allItems: MutableList<Item>
+
+        beforeSpec {
+            allItems = client.itemsScope.getAllItems(guildId).toList().toMutableList()
+        }
+
         "getAllItems should be able to get all the items" {
-            client.itemsScope.getAllItems(guildId).count() shouldBeGreaterThan 0
+            allItems.shouldNotBeEmpty()
         }
 
         "Cannot get items from a non existent guild" {
@@ -48,14 +56,11 @@ class KabotDBItemScopeTest : StringSpec() {
         }
 
         "Should be able of updating a list of items" {
-            val itemsToUpdate = client.itemsScope.getAllItems(guildId)
-                .take(3)
-                .map { it.copy(link = uuid(), category = uuid()) }
-                .toList()
+            val itemsToUpdate = allItems.take(3).map { it.copy(link = uuid(), category = uuid()) }
 
             client.itemsScope.createOrUpdateItems(guildId, itemsToUpdate).committed shouldBe true
 
-            client.itemsScope.getAllItems(guildId)
+            client.itemsScope.getItems(guildId, itemsToUpdate.map { it.name }.toSet())
                 .filter { i -> itemsToUpdate.map { it.name }.contains(i.name) }
                 .onEach { i ->
                     val oldItem = itemsToUpdate.first{ it.name == i.name }
@@ -65,18 +70,23 @@ class KabotDBItemScopeTest : StringSpec() {
         }
 
         "If an item does not exist, it is inserted" {
-            val itemToUpdate = client.itemsScope.getAllItems(guildId)
+            val newName = uuid()
+            val itemToUpdate = allItems
                 .first()
                 .copy(
-                    name = uuid(),
+                    name = newName,
                     link = uuid(),
-                    category = uuid()
+                    category = uuid(),
+                    normalizedName = StringNormalizer.normalize(newName)
                 )
 
             client.itemsScope.createOrUpdateItem(guildId, itemToUpdate).committed shouldBe true
 
-            client.itemsScope.getAllItems(guildId)
+            client.itemsScope.getItems(guildId, setOf(itemToUpdate.name))
                 .first { it.name == itemToUpdate.name }
+                .also {
+                    allItems.add(it)
+                }
                 .let {
                     it.category shouldBe itemToUpdate.category
                     it.link shouldBe itemToUpdate.link
@@ -84,14 +94,13 @@ class KabotDBItemScopeTest : StringSpec() {
         }
 
         "Cannot update items from a non existent guild" {
-            val itemsToUpdate = client.itemsScope.getAllItems(guildId).toList()
             shouldThrow<InvalidGuildException> {
-                client.itemsScope.createOrUpdateItems(uuid(), itemsToUpdate)
+                client.itemsScope.createOrUpdateItems(uuid(), allItems)
             }
         }
 
         "Can delete items from a guild" {
-            val newItems = client.itemsScope.getAllItems(guildId)
+            val newItems = allItems
                 .take(2)
                 .map { it.copy(name = uuid(), link = uuid(), category = uuid()) }
                 .toList()
@@ -108,7 +117,7 @@ class KabotDBItemScopeTest : StringSpec() {
         }
 
         "If a non-existing item is in the batch, false is returned but the others are deleted" {
-            val newItems = client.itemsScope.getAllItems(guildId)
+            val newItems = allItems
                 .take(2)
                 .map { it.copy(name = uuid(), link = uuid(), category = uuid()) }
                 .toList()
@@ -175,5 +184,82 @@ class KabotDBItemScopeTest : StringSpec() {
             client.itemsScope.getItems(guildId, items.map { it.name }.toSet()).toList() shouldContainExactlyInAnyOrder items
         }
 
+        "Can get all the items with a specified label using pagination" {
+            val label = allItems.filter { it.labels.isNotEmpty() }.random().labels.random()
+
+            val results = mutableListOf<Item>()
+
+            val pageSize = 100
+            var nextAt: Int? = null
+            do {
+                val page = client.itemsScope.getItemsMatching(
+                    guildId = guildId,
+                    labels = listOf(label),
+                    query = null,
+                    limit = pageSize,
+                    skip = nextAt
+                ).toList()
+                results.addAll(page)
+                nextAt = (nextAt ?: 0) + pageSize
+            } while (page.isNotEmpty())
+
+            val itemsWithLabel = client.itemsScope.getAllItems(guildId).filter {
+                it.labels.contains(label)
+            }.toList()
+            results shouldContainExactlyInAnyOrder itemsWithLabel
+        }
+
+        "Can get all the items matching the query using pagination" {
+            val item = allItems.random()
+            val query = item.name.substring(0, 3)
+
+            val results = mutableListOf<Item>()
+
+            val pageSize = 100
+            var nextAt: Int? = null
+            do {
+                val page = client.itemsScope.getItemsMatching(
+                    guildId = guildId,
+                    labels = listOf(),
+                    query = query,
+                    limit = pageSize,
+                    skip = nextAt
+                ).toList()
+                results.addAll(page)
+                nextAt = (nextAt ?: 0) + pageSize
+            } while (page.isNotEmpty())
+
+            val itemsWithLabel = client.itemsScope.getAllItems(guildId).filter {
+                it.normalizedName.startsWith(StringNormalizer.normalize(query))
+            }.toList()
+            results shouldContainExactlyInAnyOrder itemsWithLabel
+        }
+
+        "Can get all the items matching the query and with a specified label using pagination" {
+            val item = allItems.filter { it.labels.isNotEmpty() }.random()
+            val label = item.labels.random()
+            val query = item.name.substring(0, 2)
+
+            val results = mutableListOf<Item>()
+
+            val pageSize = 100
+            var nextAt: Int? = null
+            do {
+                val page = client.itemsScope.getItemsMatching(
+                    guildId = guildId,
+                    labels = listOf(label),
+                    query = query,
+                    limit = pageSize,
+                    skip = nextAt
+                ).toList()
+                results.addAll(page)
+                nextAt = (nextAt ?: 0) + pageSize
+            } while (page.isNotEmpty())
+
+            val itemsWithLabel = client.itemsScope.getAllItems(guildId).filter {
+                it.normalizedName.startsWith(StringNormalizer.normalize(query)) && it.labels.contains(label)
+            }.toList()
+            results shouldContainExactlyInAnyOrder itemsWithLabel
+        }
     }
 }
