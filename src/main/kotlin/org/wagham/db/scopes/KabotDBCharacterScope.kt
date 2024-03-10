@@ -50,11 +50,26 @@ class KabotDBCharacterScope(
                 else ActiveCharacterOrAllActive(allActive = it)
             }
 
+    /**
+     * Retrieves all the active characters for a player.
+     *
+     * @param guildId the id of the guild.
+     * @param playerId the id of the player.
+     * @return a [Flow] of [Character] where [Character.status] is [CharacterStatus.active].
+     */
     fun getActiveCharacters(guildId: String, playerId: String): Flow<Character> =
         getMainCollection(guildId).find(
             Character::status eq CharacterStatus.active,
             Character::player eq playerId
         ).toFlow()
+
+    /**
+     * Retrieves all the characters for a player.
+     *
+     * @param guildId the id of the guild.
+     * @return a [Flow] of [Character].
+     */
+    fun getCharacters(guildId: String, playerId: String): Flow<Character> = getMainCollection(guildId).find(Character::player eq playerId).toFlow()
 
     suspend fun getCharacter(guildId: String, characterId: String): Character =
         getMainCollection(guildId)
