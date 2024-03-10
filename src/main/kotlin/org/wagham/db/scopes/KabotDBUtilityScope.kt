@@ -1,6 +1,7 @@
 package org.wagham.db.scopes
 
 import com.mongodb.client.model.UpdateOptions
+import kotlinx.coroutines.flow.Flow
 import org.litote.kmongo.eq
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CollectionNames
@@ -8,6 +9,7 @@ import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.*
 import org.wagham.db.utils.getCollection
 import org.wagham.db.utils.isSuccessful
+import org.wagham.db.utils.limit
 
 class KabotDBUtilityScope(
     private val client: KabotMultiDBClient
@@ -71,12 +73,25 @@ class KabotDBUtilityScope(
             .descendingSort(AttendanceReport::date)
             .first()
 
-    suspend fun getLastMarket(guildId: String) =
+    suspend fun getLastMarket(guildId: String): WeeklyMarket? =
         client.getGuildDb(guildId)
             .getCollection<WeeklyMarket>(CollectionNames.MARKETS)
             .find()
             .descendingSort(WeeklyMarket::date)
             .first()
+
+    /**
+     * @param guildId the id of the guild.
+     * @param limit the number of elements to retrieve. Null will retrieve all the elements.
+     * @return a [Flow] of [WeeklyMarket] sorted descending by [WeeklyMarket.date].
+     */
+    fun getLastMarkets(guildId: String, limit: Int? = null): Flow<WeeklyMarket> =
+        client.getGuildDb(guildId)
+            .getCollection<WeeklyMarket>(CollectionNames.MARKETS)
+            .find()
+            .limit(limit)
+            .descendingSort(WeeklyMarket::date)
+            .toFlow()
 
     suspend fun updateMarket(guildId: String, market: WeeklyMarket) =
         client.getGuildDb(guildId)
