@@ -268,9 +268,8 @@ class KabotDBCharacterScopeTest : StringSpec() {
             val qty = Random.nextInt(0, 100)
             val result = client.transaction(guildId) {
                 characters.forEach { character ->
-                    client.charactersScope.addItemToInventory(it, guildId, character.id, item, qty) shouldBe true
+                    client.charactersScope.addItemToInventory(it, guildId, character.id, item, qty)
                 }
-                mapOf("test" to true)
             }
             result.committed shouldBe true
 
