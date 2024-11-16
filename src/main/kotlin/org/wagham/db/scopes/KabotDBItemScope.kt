@@ -14,6 +14,7 @@ import org.litote.kmongo.regex
 import org.wagham.db.KabotMultiDBClient
 import org.wagham.db.enums.CollectionNames
 import org.wagham.db.models.Item
+import org.wagham.db.models.client.KabotSession
 import org.wagham.db.models.client.TransactionResult
 import org.wagham.db.models.embed.LabelStub
 import org.wagham.db.utils.StringNormalizer
@@ -160,5 +161,13 @@ class KabotDBItemScope(
             or(itemsId.map { Item::name eq it })
         ).deletedCount == itemsId.size.toLong()
 
+    suspend fun deleteItems(session: KabotSession, guildId: String, itemsId: List<String>) {
+        session.tryCommit("delete ${itemsId.joinToString(", ")}") {
+            getMainCollection(guildId).deleteMany(
+                session.session,
+                or(itemsId.map { Item::name eq it })
+            ).deletedCount == itemsId.size.toLong()
+        }
+    }
 }
 

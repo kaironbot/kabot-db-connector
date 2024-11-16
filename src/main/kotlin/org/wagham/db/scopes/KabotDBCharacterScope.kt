@@ -226,7 +226,7 @@ class KabotDBCharacterScope(
     }
 
 
-suspend fun renameItemInAllInventories(session: KabotSession, guildId: String, oldName: String, newName: String) =
+    suspend fun renameItemInAllInventories(session: KabotSession, guildId: String, oldName: String, newName: String) =
         getMainCollection(guildId).updateMany(
             session.session,
             BsonDocument(),

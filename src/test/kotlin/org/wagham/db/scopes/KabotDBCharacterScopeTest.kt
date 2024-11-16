@@ -20,6 +20,7 @@ import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.exceptions.TransactionAbortedException
 import org.wagham.db.models.Building
 import org.wagham.db.models.Errata
+import org.wagham.db.models.Item
 import org.wagham.db.models.MongoCredentials
 import org.wagham.db.models.creation.CharacterCreationData
 import org.wagham.db.models.embed.LabelStub
@@ -243,6 +244,10 @@ class KabotDBCharacterScopeTest : StringSpec() {
             val characters = client.charactersScope.getAllCharacters(guildId).filter { it.inventory.isNotEmpty() }.take(10).toList()
             val item = uuid()
             val qty = Random.nextInt(0, 100)
+            client.itemsScope.createOrUpdateItem(
+                guildId,
+                Item(name = item)
+            ).committed shouldBe true
             val result = client.transaction(guildId) {
                 characters.forEach { character ->
                     client.charactersScope.addItemToInventory(it, guildId, character.id, item, qty)
@@ -251,6 +256,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
             result.committed shouldBe true
 
             client.transaction(guildId) {
+                client.itemsScope.deleteItems(it, guildId, listOf(item))
                 client.charactersScope.removeItemFromAllInventories(it, guildId, item)
             }.committed shouldBe true
 
