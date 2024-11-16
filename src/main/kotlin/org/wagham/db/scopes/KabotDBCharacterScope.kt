@@ -224,6 +224,13 @@ class KabotDBCharacterScope(
     }
 
 
+suspend fun renameItemInAllInventories(session: ClientSession, guildId: String, oldName: String, newName: String) =
+        getMainCollection(guildId).updateMany(
+            session,
+            BsonDocument(),
+            Updates.rename("inventory.$oldName", "inventory.$newName")
+        ).let { true }
+
     suspend fun addItemToInventory(session: KabotSession, guildId: String, characterId: String, item: String, qty: Int) {
         client.getGuildDb(guildId).let {
             val c = getCharacter(session.session, guildId, characterId)
