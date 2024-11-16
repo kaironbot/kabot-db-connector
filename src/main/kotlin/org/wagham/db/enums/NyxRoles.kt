@@ -8,5 +8,6 @@ enum class NyxRoles {
     @SerialName("a") ADMIN,
     @SerialName("mS") MANAGE_SESSIONS,
     @SerialName("p") PLAYER,
-    @SerialName("mC") MANAGE_CHARACTERS
+    @SerialName("mC") MANAGE_CHARACTERS,
+    @SerialName("mI") MANAGE_ITEMS
 }
