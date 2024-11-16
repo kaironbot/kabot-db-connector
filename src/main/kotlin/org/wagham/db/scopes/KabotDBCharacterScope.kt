@@ -38,7 +38,9 @@ class KabotDBCharacterScope(
                 if(player?.activeCharacter != null) {
                     getMainCollection(guildId).findOne(
                         Character::id eq player.activeCharacter
-                    )?.let {
+                    )?.takeIf {
+                        it.status == CharacterStatus.active
+                    }?.let {
                         ActiveCharacterOrAllActive(currentActive = it)
                     }
                 } else null
