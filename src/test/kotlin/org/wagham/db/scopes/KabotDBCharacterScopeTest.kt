@@ -7,6 +7,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.floats.shouldBeGreaterThan
 import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.maps.shouldNotContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -272,7 +273,7 @@ class KabotDBCharacterScopeTest : StringSpec() {
             updatedCharacter.inventory[otherItem] shouldBe character.inventory[otherItem]
         }
 
-        "removeItemFromAllInventories should be able of removing an item from all inventoried" {
+        "removeItemFromAllInventories should be able of removing an item from all inventories" {
             val characters = client.charactersScope.getAllCharacters(guildId).filter { it.inventory.isNotEmpty() }.take(10).toList()
             val item = uuid()
             val qty = Random.nextInt(0, 100)
@@ -292,6 +293,32 @@ class KabotDBCharacterScopeTest : StringSpec() {
             characters.forEach {
                 client.charactersScope.getCharacter(guildId, it.id).let { c ->
                     c.inventory shouldNotContainKey item
+                }
+            }
+        }
+
+        "renameItemInAllInventories should be able of renaming items in all inventories" {
+            val characters = client.charactersScope.getAllCharacters(guildId).filter { it.inventory.isNotEmpty() }.take(10).toList()
+            val item = "${uuid()}_start"
+            val newName = "${uuid()}_renamed"
+            val qty = Random.nextInt(0, 100)
+            val result = client.transaction(guildId) {
+                characters.forEach { character ->
+                    client.charactersScope.addItemToInventory(it, guildId, character.id, item, qty) shouldBe true
+                }
+                mapOf("test" to true)
+            }
+            result.committed shouldBe true
+
+            client.transaction(guildId) {
+                client.charactersScope.renameItemInAllInventories(it, guildId, item, newName)
+                mapOf("test" to true)
+            }.committed shouldBe true
+
+            characters.forEach {
+                client.charactersScope.getCharacter(guildId, it.id).let { c ->
+                    c.inventory shouldNotContainKey item
+                    c.inventory shouldContainKey newName
                 }
             }
         }
