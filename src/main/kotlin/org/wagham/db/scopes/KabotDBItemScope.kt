@@ -115,25 +115,31 @@ class KabotDBItemScope(
      * @return a [TransactionResult] with the result of the operation
      */
     suspend fun createOrUpdateItems(guildId: String, items: List<Item>): TransactionResult =
-        getMainCollection(guildId).let { collection ->
-            client.transaction(guildId) { session ->
-                val existingItemsNames = collection.find(
-                    Item::name `in` items.map { it.name }
-                ).toFlow().map { it.name }.toList()
-                val creationResult = items.filter {
-                    !existingItemsNames.contains(it.name)
-                }.takeIf { it.isNotEmpty() }?.let {  itemsToCreate ->
-                    collection.insertMany(itemsToCreate).insertedIds.size == itemsToCreate.size
-                } ?: true
-                session.tryCommit("itemsCreated", creationResult)
-
-                val itemsToUpdate = items.filter { existingItemsNames.contains(it.name) }
-                val updateResult = itemsToUpdate.all {
-                    collection.updateOne(Item::name eq it.name, it).modifiedCount == 1L
-                }
-                session.tryCommit("itemsUpdated", updateResult)
-            }
+        client.transaction(guildId) { session ->
+            createOrUpdateItems(session, guildId, items)
         }
+
+    suspend fun createOrUpdateItem(session: KabotSession, guildId: String, items: Item) =
+        createOrUpdateItems(session, guildId, listOf(items))
+
+    suspend fun createOrUpdateItems(session: KabotSession, guildId: String, items: List<Item>) {
+        val collection = getMainCollection(guildId)
+        val existingItemsNames = collection.find(
+            Item::name `in` items.map { it.name }
+        ).toFlow().map { it.name }.toList()
+        val creationResult = items.filter {
+            !existingItemsNames.contains(it.name)
+        }.takeIf { it.isNotEmpty() }?.let {  itemsToCreate ->
+            collection.insertMany(itemsToCreate).insertedIds.size == itemsToCreate.size
+        } ?: true
+        session.tryCommit("itemsCreated", creationResult)
+
+        val itemsToUpdate = items.filter { existingItemsNames.contains(it.name) }
+        val updateResult = itemsToUpdate.all {
+            collection.updateOne(Item::name eq it.name, it).modifiedCount == 1L
+        }
+        session.tryCommit("itemsUpdated", updateResult)
+    }
 
     /**
      * Retrieves all the [Item]s where the one passed as parameter is an ingredient of at least one recipe.
