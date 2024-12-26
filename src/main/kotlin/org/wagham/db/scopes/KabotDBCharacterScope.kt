@@ -92,10 +92,9 @@ class KabotDBCharacterScope(
 	 * @return a [Flow] containing the retrieved [Character]s.
 	 */
 	fun getCharacters(guildId: String, characterIds: List<String>): Flow<Character> =
-		getMainCollection(guildId)
-			.find(
-				Character::id `in` characterIds
-			).toFlow()
+		getMainCollection(guildId).find(
+			Character::id `in` characterIds
+		).toFlow()
 
 	suspend fun updateCharacter(guildId: String, updatedCharacter: Character): Boolean =
 		getMainCollection(guildId)
