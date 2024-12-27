@@ -7,8 +7,9 @@ import java.util.Date
 
 @Serializable
 data class Player(
-    @BsonId val playerId: String,
-    val name: String,
-    @Contextual val dateJoined: Date?,
-    val activeCharacter: String? = null
+	@BsonId val playerId: String,
+	val name: String,
+	@Contextual val dateJoined: Date?,
+	val activeCharacter: String? = null,
+	@Contextual val masterSince: Date? = null,
 )
