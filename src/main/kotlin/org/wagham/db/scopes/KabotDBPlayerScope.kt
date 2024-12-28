@@ -77,6 +77,11 @@ class KabotDBPlayerScope(
 		).modifiedCount == 1L
 	}
 
+	suspend fun setMasterDate(guildId: String, playerId: String, date: Date?): Boolean = getMainCollection(guildId).updateOne(
+		Player::playerId eq playerId,
+		set(Player::masterSince setTo date)
+	).modifiedCount == 1L
+
 	suspend fun unsetActiveCharacter(guildId: String, playerId: String) = getMainCollection(guildId).updateOne(
 		Player::playerId eq playerId,
 		set(Player::activeCharacter setTo null)
