@@ -1,18 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	kotlin("jvm") version "1.9.20"
-	id("io.kotest") version "0.3.8"
-	id("org.jetbrains.kotlin.plugin.serialization") version "1.9.20"
+	alias(connectorLibs.plugins.kotlin.jvm)
+	alias(connectorLibs.plugins.kotlin.serialization)
+	alias(connectorLibs.plugins.kotest)
 	id("jacoco")
 }
-
-buildscript {
-	repositories {
-		mavenCentral()
-	}
-}
-
 
 group = "org.wagham"
 version = "0.21.0"
@@ -22,15 +15,13 @@ repositories {
 }
 
 dependencies {
-	implementation("org.litote.kmongo:kmongo-coroutine:4.11.0")
-	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
-	runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.1")
-	implementation("io.kotest:kotest-runner-junit5-jvm:5.5.5")
-	implementation("org.slf4j:slf4j-api:2.0.5")
-	implementation("org.slf4j:slf4j-simple:2.0.5")
-	testImplementation("io.kotest:kotest-assertions-core-jvm:5.5.5")
-	testImplementation("io.kotest:kotest-framework-engine-jvm:5.5.5")
+	implementation(connectorLibs.kmongo)
+	implementation(connectorLibs.kotlinx.serialization.json)
+	implementation(connectorLibs.kotlinx.coroutines.core)
+	runtimeOnly(connectorLibs.kotlinx.coroutines.reactor)
+	implementation(connectorLibs.slf4j.api)
+	implementation(connectorLibs.slf4j.simple)
+	testImplementation(connectorLibs.bundles.kotest)
 }
 
 tasks.withType<Test> {
@@ -38,10 +29,10 @@ tasks.withType<Test> {
 }
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_19
-	targetCompatibility = JavaVersion.VERSION_19
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
 }
 
 tasks.withType<KotlinCompile> {
-	kotlinOptions.jvmTarget = "19"
+	kotlinOptions.jvmTarget = "21"
 }

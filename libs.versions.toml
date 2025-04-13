@@ -1,0 +1,26 @@
+[versions]
+kotlin = "2.1.20-RC"
+kmongo = "4.11.0"
+serialization = "1.8.1"
+kotlinx = "1.10.1"
+kotest = "5.9.1"
+slf4j = "2.0.5"
+
+[libraries]
+kmongo = { module = "org.litote.kmongo:kmongo-coroutine", version.ref = "kmongo" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx" }
+kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "kotlinx" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j"}
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j"}
+kotest-core = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
+kotst-engine = { module = "io.kotest:kotest-framework-engine-jvm", version.ref = "kotest" }
+kotst-runner = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
+
+[bundles]
+kotest = ["kotest-core", "kotst-engine", "kotst-runner"]
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotest = { id = "io.kotest", version = "0.3.8" }

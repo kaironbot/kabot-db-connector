@@ -1,16 +1,14 @@
 package org.wagham.db
 
 import com.mongodb.MongoCommandException
-import com.mongodb.reactivestreams.client.ClientSession
-import io.kotest.common.runBlocking
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.retry
+import kotlinx.coroutines.runBlocking
 import org.litote.kmongo.coroutine.*
 import org.litote.kmongo.reactivestreams.KMongo
 import org.wagham.db.exceptions.InvalidGuildException
-import org.wagham.db.exceptions.TransactionAbortedException
 import org.wagham.db.models.MongoCredentials
 import org.wagham.db.models.client.KabotSession
 import org.wagham.db.models.client.TransactionResult
