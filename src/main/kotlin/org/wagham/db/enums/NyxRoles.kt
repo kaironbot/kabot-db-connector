@@ -10,5 +10,6 @@ enum class NyxRoles {
     @SerialName("p") PLAYER,
     @SerialName("mC") MANAGE_CHARACTERS,
     @SerialName("mI") MANAGE_ITEMS,
-    @SerialName("dI") DELETE_ITEMS
+    @SerialName("dI") DELETE_ITEMS,
+    @SerialName("mF") MANAGE_FOUNDRY,
 }
