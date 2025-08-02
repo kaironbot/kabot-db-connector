@@ -129,7 +129,6 @@ class KabotDBCharacterScope(
 		}
 	}
 
-
 	suspend fun addLanguageToCharacter(session: KabotSession, guildId: String, characterId: String, language: ProficiencyStub) {
 		session.tryCommit("add ${language.name} $characterId") {
 			getMainCollection(guildId).updateOne(
@@ -139,7 +138,6 @@ class KabotDBCharacterScope(
 			).modifiedCount == 1L
 		}
 	}
-
 
 	suspend fun removeProficiencyFromCharacter(guildId: String, characterId: String, proficiency: ProficiencyStub) =
 		getMainCollection(guildId)

@@ -2,6 +2,7 @@ package org.wagham.db.scopes
 
 import com.mongodb.reactivestreams.client.ClientSession
 import kotlinx.coroutines.flow.Flow
+import org.litote.kmongo.addToSet
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
 import org.litote.kmongo.`in`
@@ -14,6 +15,7 @@ import org.wagham.db.exceptions.ResourceNotFoundException
 import org.wagham.db.models.Character
 import org.wagham.db.models.Player
 import org.wagham.db.models.client.KabotSession
+import org.wagham.db.models.embed.Strike
 import java.util.*
 
 class KabotDBPlayerScope(
@@ -86,4 +88,10 @@ class KabotDBPlayerScope(
 		Player::playerId eq playerId,
 		set(Player::activeCharacter setTo null)
 	).modifiedCount
+
+	suspend fun addStrike(guildId: String, playerId: String, strike: Strike): Boolean =
+		getMainCollection(guildId).updateOne(
+			Player::playerId eq playerId,
+			addToSet(Player::strikes, strike)
+		).modifiedCount == 1L
 }
